@@ -21,7 +21,7 @@ const ZerodhaPredictor = () => {
         setLoading(true);
 
         try {
-            const apiSymbol = customQuery.toUpperCase();
+            const apiSymbol = symbolToFetch.toUpperCase();
             // Append .NS for common Indian stocks if no suffix exists and usually it's an Indian app context, 
             // but we'll let user type '.NS' if needed or just use as is for global US stocks.
             const querySymbol = apiSymbol.includes('.') ? apiSymbol : `${apiSymbol}.NS`;
