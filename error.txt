@@ -1,0 +1,37 @@
+﻿node : (node:21876) Warning: Failed to load the ES module: C:\
+Users\Pratham\.gemini\antigravity\scratch\smart-finance-adviso
+r\server\index.js. Make sure to set "type": "module" in the 
+nearest package.json file or use the .mjs extension.
+At line:1 char:1
++ node api/index.js 2>&1 | Out-File -Encoding utf8 error.txt
++ ~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:21876) Wa. 
+   ...mjs extension.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+(Use `node --trace-warnings ...` to show where the warning 
+was created)
+C:\Users\Pratham\.gemini\antigravity\scratch\smart-finance-adv
+isor\server\index.js:1
+import path from 'path';
+^^^^^^
+
+SyntaxError: Cannot use import statement outside a module
+    at wrapSafe (node:internal/modules/cjs/loader:1743:18)
+    at Module._compile 
+(node:internal/modules/cjs/loader:1786:20)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad 
+(node:internal/modules/cjs/loader:255:19)
+    at loadCJSModuleWithModuleLoad 
+(node:internal/modules/esm/translators:328:3)
+    at ModuleWrap.<anonymous> 
+(node:internal/modules/esm/translators:233:7)
+    at ModuleJob.run 
+(node:internal/modules/esm/module_job:430:25)
+    at async onImport.tracePromise.__proto__ 
+(node:internal/modules/esm/loader:661:26)
+
+Node.js v24.14.0
