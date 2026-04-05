@@ -29,7 +29,7 @@ const MarketAnalyzer = () => {
 
     const checkStatus = async () => {
         try {
-            const res = await fetch('http://localhost:5000/api/ai-status');
+            const res = await fetch('/api/ai-status');
             const data = await res.json();
             setAiStatus(data);
         } catch {
@@ -53,7 +53,7 @@ const MarketAnalyzer = () => {
         setResponse(null);
 
         try {
-            const res = await fetch('http://localhost:5000/api/market-analysis', {
+            const res = await fetch('/api/market-analysis', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ prompt: prompt.trim(), max_tokens: 250, token: apiKey.trim() })

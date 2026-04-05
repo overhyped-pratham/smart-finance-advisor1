@@ -24,7 +24,8 @@ app.use(cors());
 app.use(express.json());
 
 // Set up SQLite database
-const dbFile = path.resolve(__dirname, 'database.sqlite');
+const isVercel = process.env.VERCEL === '1';
+const dbFile = isVercel ? '/tmp/database.sqlite' : path.resolve(__dirname, 'database.sqlite');
 const db = new sqlite3.Database(dbFile, (err) => {
     if (err) {
         console.error('Error opening database', err);
@@ -253,6 +254,10 @@ process.on('SIGINT', () => {
     });
 });
 
-app.listen(PORT, () => {
-    console.log(`Backend server running on http://localhost:${PORT}`);
-});
+if (!process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`Backend server running on http://localhost:${PORT}`);
+    });
+}
+
+module.exports = app;

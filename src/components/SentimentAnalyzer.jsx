@@ -59,7 +59,7 @@ const SentimentAnalyzer = () => {
         setError(null);
 
         try {
-            const response = await fetch('http://localhost:5000/api/sentiment', {
+            const response = await fetch('/api/sentiment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ texts: validTexts, token: apiKey.trim() })

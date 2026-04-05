@@ -26,13 +26,13 @@ const ZerodhaPredictor = () => {
             // but we'll let user type '.NS' if needed or just use as is for global US stocks.
             const querySymbol = apiSymbol.includes('.') ? apiSymbol : `${apiSymbol}.NS`;
 
-            const res = await fetch(`http://localhost:5000/api/stock/${querySymbol}`);
+            const res = await fetch(`/api/stock/${querySymbol}`);
             const data = await res.json();
 
             if (!res.ok) {
                 // If .NS failed, fallback to raw input (maybe it's a US stock like AAPL)
                 if (!apiSymbol.includes('.')) {
-                   const fallbackRes = await fetch(`http://localhost:5000/api/stock/${apiSymbol}`);
+                   const fallbackRes = await fetch(`/api/stock/${apiSymbol}`);
                    const fallbackData = await fallbackRes.json();
                    if (!fallbackRes.ok) throw new Error(fallbackData.error || 'Stock symbol not found.');
                    

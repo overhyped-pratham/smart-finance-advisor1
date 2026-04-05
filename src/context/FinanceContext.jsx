@@ -16,14 +16,14 @@ export const FinanceProvider = ({ children }) => {
         const fetchData = async () => {
             try {
                 // Fetch budget
-                const budgetRes = await fetch('http://localhost:5000/api/budget');
+                const budgetRes = await fetch('/api/budget');
                 if (budgetRes.ok) {
                     const budgetData = await budgetRes.json();
                     setBudget(budgetData.amount);
                 }
 
                 // Fetch expenses
-                const expensesRes = await fetch('http://localhost:5000/api/expenses');
+                const expensesRes = await fetch('/api/expenses');
                 if (expensesRes.ok) {
                     const expensesData = await expensesRes.json();
                     setExpenses(expensesData);
@@ -48,7 +48,7 @@ export const FinanceProvider = ({ children }) => {
     const updateBudget = async (newAmount) => {
         setBudget(newAmount);
         try {
-            await fetch('http://localhost:5000/api/budget', {
+            await fetch('/api/budget', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ amount: newAmount })
@@ -71,7 +71,7 @@ export const FinanceProvider = ({ children }) => {
         setExpenses([...expenses, newExpense]); // Optimistic update
         
         try {
-            await fetch('http://localhost:5000/api/expenses', {
+            await fetch('/api/expenses', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newExpense)
@@ -85,7 +85,7 @@ export const FinanceProvider = ({ children }) => {
         setExpenses(expenses.filter(e => e.id !== id)); // Optimistic update
         
         try {
-            await fetch(`http://localhost:5000/api/expenses/${id}`, {
+            await fetch(`/api/expenses/${id}`, {
                 method: 'DELETE'
             });
         } catch (err) {

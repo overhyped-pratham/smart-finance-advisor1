@@ -29,7 +29,7 @@ const Navbar = ({ toggleSidebar }) => {
                 </button>
                 <button
                     onClick={async () => {
-                        const res = await fetch('http://localhost:5000/api/zerodha/login');
+                        const res = await fetch('/api/zerodha/login');
                         const data = await res.json();
                         if (data.url) window.location.href = data.url;
                     }}
