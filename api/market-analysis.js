@@ -3,9 +3,10 @@ import Groq from 'groq-sdk';
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
     
-    const { prompt, max_tokens, token, hfToken: bodyHfToken } = req.body;
+    const { prompt, max_tokens, token, hfToken: bodyHfToken, geminiToken: bodyGeminiToken } = req.body;
     const groqToken = token || process.env.GROQ_API_KEY;
     const hfToken = bodyHfToken || process.env.HF_TOKEN;
+    const geminiToken = bodyGeminiToken || process.env.GEMINI_API_KEY;
 
     if (!prompt) return res.status(400).json({ error: 'Please provide a prompt.' });
 
@@ -43,5 +44,28 @@ export default async function handler(req, res) {
         }
     }
 
-    res.status(500).json({ error: 'Both AI providers failed or are unconfigured.' });
+    // 3. Try Gemini API
+    if (geminiToken) {
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiToken}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{ text: "You are an expert financial analyst. Provide a concise, highly analytical response based on market data.\n\n" + prompt }]
+                    }]
+                })
+            });
+            if (!response.ok) throw new Error(await response.text());
+            const data = await response.json();
+            const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (textResponse) {
+                return res.json({ prompt, response: textResponse.trim(), provider: 'gemini' });
+            }
+        } catch (err) {
+            console.error('Gemini Error:', err.message);
+        }
+    }
+
+    res.status(500).json({ error: 'All AI providers (Groq, HF, Gemini) failed or are unconfigured.' });
 }

@@ -17,6 +17,7 @@ const SentimentAnalyzer = () => {
     const [error, setError] = useState(null);
     const [apiKey, setApiKey] = useState(localStorage.getItem('groq_token') || '');
     const [hfToken, setHfToken] = useState(localStorage.getItem('hf_token') || '');
+    const [geminiToken, setGeminiToken] = useState(localStorage.getItem('gemini_token') || '');
     const [showFallback, setShowFallback] = useState(false);
     const [provider, setProvider] = useState(null);
 
@@ -28,6 +29,11 @@ const SentimentAnalyzer = () => {
     const saveHfToken = (val) => {
         setHfToken(val);
         localStorage.setItem('hf_token', val);
+    };
+
+    const saveGeminiToken = (val) => {
+        setGeminiToken(val);
+        localStorage.setItem('gemini_token', val);
     };
 
     const addHeadline = () => {
@@ -65,7 +71,7 @@ const SentimentAnalyzer = () => {
             const response = await fetch('/api/sentiment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ texts: validTexts, token: apiKey.trim() || undefined, hfToken: hfToken.trim() || undefined })
+                body: JSON.stringify({ texts: validTexts, token: apiKey.trim() || undefined, hfToken: hfToken.trim() || undefined, geminiToken: geminiToken.trim() || undefined })
             });
 
             const data = await response.json();
@@ -151,20 +157,32 @@ const SentimentAnalyzer = () => {
                     className="flex items-center gap-2 text-xs text-slate-500 hover:text-slate-300 transition-colors mb-2"
                 >
                     <Shield size={12} />
-                    <span>Backup: Hugging Face API</span>
+                    <span>Backup: Hugging Face / Gemini API</span>
                     <ChevronDown size={12} className={`transition-transform ${showFallback ? 'rotate-180' : ''}`} />
                 </button>
                 {showFallback && (
-                    <div className="mb-6 flex gap-3 animate-fadeIn">
-                        <input 
-                            type="password"
-                            placeholder="Paste your Hugging Face Token (hf_...)"
-                            value={hfToken}
-                            onChange={(e) => saveHfToken(e.target.value)}
-                            className="flex-1 bg-amber-900/20 border border-amber-500/20 rounded-xl px-4 py-2 text-white placeholder-slate-600 focus:border-amber-400/50 outline-none transition-all text-sm"
-                        />
-                        <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noreferrer" className="text-xs text-amber-400 underline flex items-center px-2">Get Token</a>
-                    </div>
+                    <>
+                        <div className="mb-6 flex gap-3 animate-fadeIn">
+                            <input 
+                                type="password"
+                                placeholder="Paste your Hugging Face Token (hf_...)"
+                                value={hfToken}
+                                onChange={(e) => saveHfToken(e.target.value)}
+                                className="flex-1 bg-amber-900/20 border border-amber-500/20 rounded-xl px-4 py-2 text-white placeholder-slate-600 focus:border-amber-400/50 outline-none transition-all text-sm"
+                            />
+                            <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noreferrer" className="text-xs text-amber-400 underline flex items-center px-2">Get HF Token</a>
+                        </div>
+                        <div className="mb-6 flex gap-3 animate-fadeIn">
+                            <input 
+                                type="password"
+                                placeholder="Paste your Gemini API Key (AIza...)"
+                                value={geminiToken}
+                                onChange={(e) => saveGeminiToken(e.target.value)}
+                                className="flex-1 bg-blue-900/20 border border-blue-500/20 rounded-xl px-4 py-2 text-white placeholder-slate-600 focus:border-blue-400/50 outline-none transition-all text-sm"
+                            />
+                            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-xs text-blue-400 underline flex items-center px-2">Get Gemini Key</a>
+                        </div>
+                    </>
                 )}
 
                 <div className="space-y-3">
@@ -242,9 +260,11 @@ const SentimentAnalyzer = () => {
                                 <span className={`ml-auto text-xs font-medium px-3 py-1 rounded-full ${
                                     provider === 'groq' 
                                         ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' 
-                                        : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                        : provider === 'gemini'
+                                            ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                                            : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                                 }`}>
-                                    via {provider === 'groq' ? 'Groq (Llama-3)' : 'HuggingFace (FinBERT)'}
+                                    via {provider === 'groq' ? 'Groq (Llama-3)' : provider === 'gemini' ? 'Gemini (1.5 Flash)' : 'HuggingFace (FinBERT)'}
                                 </span>
                             )}
                         </h3>

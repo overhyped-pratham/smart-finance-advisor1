@@ -3,9 +3,10 @@ import Groq from 'groq-sdk';
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
     
-    const { texts, token, hfToken: bodyHfToken } = req.body;
+    const { texts, token, hfToken: bodyHfToken, geminiToken: bodyGeminiToken } = req.body;
     const groqToken = token || process.env.GROQ_API_KEY;
     const hfToken = bodyHfToken || process.env.HF_TOKEN;
+    const geminiToken = bodyGeminiToken || process.env.GEMINI_API_KEY;
 
     if (!texts || !Array.isArray(texts)) return res.status(400).json({ error: 'Invalid input' });
 
@@ -53,5 +54,34 @@ export default async function handler(req, res) {
         }
     }
 
-    res.status(500).json({ error: 'Both AI providers failed or are unconfigured.' });
+    // 3. Try Gemini API
+    if (geminiToken) {
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiToken}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{ text: "Analyze the sentiment of the following financial texts. Return STRICTLY a JSON array of objects with 'sentiment' (positive, negative, or neutral) and 'confidence' (0-100) for each text. Do not include markdown formatting.\n\nTexts: " + JSON.stringify(texts) }]
+                    }],
+                    generationConfig: { response_mime_type: "application/json" }
+                })
+            });
+            if (!response.ok) throw new Error(await response.text());
+            const responseData = await response.json();
+            let textResponse = responseData.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (textResponse) {
+                const data = JSON.parse(textResponse);
+                const results = texts.map((text, idx) => {
+                    const item = (data.results || data)[idx] || { sentiment: 'neutral', confidence: 50 };
+                    return { text, sentiment: item?.sentiment?.toLowerCase() || 'neutral', confidence: item?.confidence || 50 };
+                });
+                return res.json({ results, provider: 'gemini' });
+            }
+        } catch (err) {
+            console.error('Gemini Error:', err.message);
+        }
+    }
+
+    res.status(500).json({ error: 'All AI providers (Groq, HF, Gemini) failed or are unconfigured.' });
 }
