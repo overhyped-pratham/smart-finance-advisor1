@@ -10,8 +10,12 @@ export default async function handler(req, res) {
 
     if (!texts || !Array.isArray(texts)) return res.status(400).json({ error: 'Invalid input' });
 
+    const errors = {};
+    let attempted = false;
+
     // 1. Try Groq
     if (groqToken) {
+        attempted = true;
         try {
             const client = new Groq({ apiKey: groqToken });
             const completion = await client.chat.completions.create({
@@ -30,11 +34,13 @@ export default async function handler(req, res) {
             return res.json({ results, provider: 'groq' });
         } catch (err) {
             console.error('Groq Error:', err.message);
+            errors.groq = err.message;
         }
     }
 
     // 2. Try Hugging Face
     if (hfToken) {
+        attempted = true;
         try {
             const results = [];
             for (const text of texts) {
@@ -51,11 +57,13 @@ export default async function handler(req, res) {
             return res.json({ results, provider: 'huggingface' });
         } catch (err) {
             console.error('HF Error:', err.message);
+            errors.huggingface = err.message;
         }
     }
 
     // 3. Try Gemini API
     if (geminiToken) {
+        attempted = true;
         try {
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiToken}`, {
                 method: 'POST',
@@ -77,11 +85,21 @@ export default async function handler(req, res) {
                     return { text, sentiment: item?.sentiment?.toLowerCase() || 'neutral', confidence: item?.confidence || 50 };
                 });
                 return res.json({ results, provider: 'gemini' });
+            } else {
+                throw new Error("Invalid response format from Gemini");
             }
         } catch (err) {
             console.error('Gemini Error:', err.message);
+            errors.gemini = err.message;
         }
     }
 
-    res.status(500).json({ error: 'All AI providers (Groq, HF, Gemini) failed or are unconfigured.' });
+    if (!attempted) {
+        return res.status(400).json({ error: 'No API keys were provided or configured for Groq, HuggingFace, or Gemini.' });
+    }
+
+    res.status(500).json({ 
+        error: 'All configured AI providers failed. Check your API keys.',
+        details: errors
+    });
 }

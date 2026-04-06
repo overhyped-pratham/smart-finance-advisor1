@@ -71,7 +71,11 @@ const MarketAnalyzer = () => {
             const data = await res.json();
 
             if (!res.ok) {
-                setError(data.error || 'Something went wrong.');
+                let errorMessage = data.error || 'Something went wrong.';
+                if (data.details && Object.keys(data.details).length > 0) {
+                    errorMessage += ' Details: ' + Object.entries(data.details).map(([k,v]) => `${k.toUpperCase()}=${v}`).join(' | ');
+                }
+                setError(errorMessage);
                 setLoading(false);
                 return;
             }
