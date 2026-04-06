@@ -58,11 +58,6 @@ const SentimentAnalyzer = () => {
             return;
         }
 
-        if (!apiKey.trim() && !hfToken.trim()) {
-            setError('Please enter a Groq API Key or a Hugging Face Token.');
-            return;
-        }
-
         setLoading(true);
         setError(null);
 
