@@ -140,79 +140,167 @@ app.get('/api/stock/:symbol', async (req, res) => {
 });
 
 // ──────────────────────────────────────────────
-// Groq AI Integration (Llama-3.1-8b)
+// Hugging Face Fallback Helper
+// ──────────────────────────────────────────────
+async function hfInference(hfToken, model, inputs, parameters = {}) {
+    const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${hfToken}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ inputs, parameters }),
+    });
+
+    if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`HF API Error (${response.status}): ${errText}`);
+    }
+
+    return response.json();
+}
+
+async function hfSentimentFallback(hfToken, texts) {
+    // Use FinBERT for financial sentiment analysis
+    const results = [];
+    for (const text of texts) {
+        try {
+            const data = await hfInference(hfToken, 'ProsusAI/finbert', text);
+            // FinBERT returns [[{label, score}, ...]] — pick the top result
+            const top = data[0]?.reduce((a, b) => a.score > b.score ? a : b, data[0][0]);
+            results.push({
+                text,
+                sentiment: top?.label?.toLowerCase() || 'neutral',
+                confidence: Math.round((top?.score || 0.5) * 100),
+            });
+        } catch (innerErr) {
+            console.error('HF FinBERT error for text:', innerErr.message);
+            results.push({ text, sentiment: 'neutral', confidence: 50 });
+        }
+    }
+    return results;
+}
+
+async function hfMarketAnalysisFallback(hfToken, prompt, maxTokens) {
+    // Use Mistral-7B-Instruct for text generation
+    const data = await hfInference(
+        hfToken,
+        'mistralai/Mistral-7B-Instruct-v0.3',
+        `<s>[INST] You are an expert financial analyst. Provide a concise, highly analytical response based on market data.\n\n${prompt} [/INST]`,
+        { max_new_tokens: maxTokens || 500, return_full_text: false }
+    );
+    return data[0]?.generated_text?.trim() || 'Analysis could not be generated.';
+}
+
+// ──────────────────────────────────────────────
+// Groq AI Integration (Llama-3.1-8b) + Hugging Face Fallback
 // ──────────────────────────────────────────────
 app.post('/api/sentiment', async (req, res) => {
-    const { texts, token } = req.body;
+    const { texts, token, hfToken: bodyHfToken } = req.body;
+    const hfToken = bodyHfToken || process.env.HF_TOKEN;
 
     if (!texts || !Array.isArray(texts) || texts.length === 0) {
         return res.status(400).json({ error: 'Please provide an array of texts for analysis.' });
     }
     
-    if (!token) {
-        return res.status(401).json({ error: 'Please provide a Groq API Key.' });
+    if (!token && !hfToken) {
+        return res.status(401).json({ error: 'Please provide a Groq API Key or a Hugging Face Token.' });
     }
 
-    try {
-        const client = new Groq({ apiKey: token });
-        const completion = await client.chat.completions.create({
-            model: "llama-3.1-8b-instant",
-            messages: [
-                { role: "system", content: "Analyze the sentiment of the following financial texts. Return a JSON array of objects with 'sentiment' (positive, negative, or neutral) and 'confidence' (0-100) for each text." },
-                { role: "user", content: JSON.stringify(texts) }
-            ],
-            response_format: { type: "json_object" }
-        });
+    // ── Try Groq first ──
+    if (token) {
+        try {
+            const client = new Groq({ apiKey: token });
+            const completion = await client.chat.completions.create({
+                model: "llama-3.1-8b-instant",
+                messages: [
+                    { role: "system", content: "Analyze the sentiment of the following financial texts. Return a JSON array of objects with 'sentiment' (positive, negative, or neutral) and 'confidence' (0-100) for each text." },
+                    { role: "user", content: JSON.stringify(texts) }
+                ],
+                response_format: { type: "json_object" }
+            });
 
-        const data = JSON.parse(completion.choices[0].message.content);
-        // Assuming data is { results: [...] } or just an array
-        const results = texts.map((text, idx) => {
-            const item = (data.results || data)[idx] || { sentiment: 'neutral', confidence: 50 };
-            return {
-                text,
-                sentiment: item.sentiment.toLowerCase(),
-                confidence: item.confidence,
-            };
-        });
+            const data = JSON.parse(completion.choices[0].message.content);
+            const results = texts.map((text, idx) => {
+                const item = (data.results || data)[idx] || { sentiment: 'neutral', confidence: 50 };
+                return {
+                    text,
+                    sentiment: item.sentiment.toLowerCase(),
+                    confidence: item.confidence,
+                };
+            });
 
-        res.json({ results });
-    } catch (err) {
-        console.error('Groq Sentiment Error:', err);
-        res.status(500).json({ error: 'Failed to process sentiment via Groq.' });
+            return res.json({ results, provider: 'groq' });
+        } catch (err) {
+            console.error('Groq Sentiment Error (will try HF fallback):', err.message);
+        }
     }
+
+    // ── Fallback to Hugging Face ──
+    if (hfToken) {
+        try {
+            console.log('⤷ Falling back to Hugging Face for sentiment...');
+            const results = await hfSentimentFallback(hfToken, texts);
+            return res.json({ results, provider: 'huggingface' });
+        } catch (err) {
+            console.error('HF Sentiment Fallback Error:', err.message);
+        }
+    }
+
+    res.status(500).json({ error: 'Both Groq and Hugging Face failed. Please check your API keys.' });
 });
 
 app.post('/api/market-analysis', async (req, res) => {
-    const { prompt, max_tokens, token } = req.body;
+    const { prompt, max_tokens, token, hfToken: bodyHfToken } = req.body;
+    const hfToken = bodyHfToken || process.env.HF_TOKEN;
 
     if (!prompt) {
         return res.status(400).json({ error: 'Please provide a prompt.' });
     }
     
-    if (!token) {
-        return res.status(401).json({ error: 'Please provide a Groq API Key.' });
+    if (!token && !hfToken) {
+        return res.status(401).json({ error: 'Please provide a Groq API Key or a Hugging Face Token.' });
     }
 
-    try {
-        const client = new Groq({ apiKey: token });
-        const completion = await client.chat.completions.create({
-            model: "llama-3.1-8b-instant",
-            messages: [
-                { role: "system", content: "You are an expert financial analyst. Provide a concise, highly analytical response based on market data." },
-                { role: "user", content: prompt }
-            ],
-            max_tokens: max_tokens || 500,
-        });
+    // ── Try Groq first ──
+    if (token) {
+        try {
+            const client = new Groq({ apiKey: token });
+            const completion = await client.chat.completions.create({
+                model: "llama-3.1-8b-instant",
+                messages: [
+                    { role: "system", content: "You are an expert financial analyst. Provide a concise, highly analytical response based on market data." },
+                    { role: "user", content: prompt }
+                ],
+                max_tokens: max_tokens || 500,
+            });
 
-        res.json({
-            prompt: prompt,
-            response: completion.choices[0].message.content.trim()
-        });
-
-    } catch (err) {
-        console.error('Groq AI error:', err);
-        res.status(500).json({ error: 'Failed to process request via Groq AI. Check your API key.' });
+            return res.json({
+                prompt: prompt,
+                response: completion.choices[0].message.content.trim(),
+                provider: 'groq'
+            });
+        } catch (err) {
+            console.error('Groq AI error (will try HF fallback):', err.message);
+        }
     }
+
+    // ── Fallback to Hugging Face ──
+    if (hfToken) {
+        try {
+            console.log('⤷ Falling back to Hugging Face for market analysis...');
+            const generatedText = await hfMarketAnalysisFallback(hfToken, prompt, max_tokens);
+            return res.json({
+                prompt: prompt,
+                response: generatedText,
+                provider: 'huggingface'
+            });
+        } catch (err) {
+            console.error('HF Market Analysis Fallback Error:', err.message);
+        }
+    }
+
+    res.status(500).json({ error: 'Both Groq and Hugging Face failed. Please check your API keys.' });
 });
 
 // ──────────────────────────────────────────────
@@ -242,7 +330,14 @@ app.post('/api/zerodha/session', async (req, res) => {
 });
 
 app.get('/api/ai-status', (req, res) => {
-    res.json({ status: 'ok', model: 'llama-3.1-8b-instant', mode: 'groq' });
+    const hfAvailable = !!process.env.HF_TOKEN;
+    res.json({ 
+        status: 'ok', 
+        model: 'llama-3.1-8b-instant', 
+        mode: 'groq',
+        fallback: hfAvailable ? 'huggingface' : 'none',
+        fallbackModels: hfAvailable ? ['ProsusAI/finbert', 'mistralai/Mistral-7B-Instruct-v0.3'] : []
+    });
 });
 
 // Graceful shutdown

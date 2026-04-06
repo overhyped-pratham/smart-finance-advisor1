@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Brain, Loader2, Sparkles, ArrowUp, ArrowDown, Minus, Plus, Trash2 } from 'lucide-react';
+import { Brain, Loader2, Sparkles, ArrowUp, ArrowDown, Minus, Plus, Trash2, Shield, ChevronDown } from 'lucide-react';
 
 const SAMPLE_HEADLINES = [
     "Apple stock surges to all-time high after record quarterly earnings",
@@ -16,10 +16,18 @@ const SentimentAnalyzer = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [apiKey, setApiKey] = useState(localStorage.getItem('groq_token') || '');
+    const [hfToken, setHfToken] = useState(localStorage.getItem('hf_token') || '');
+    const [showFallback, setShowFallback] = useState(false);
+    const [provider, setProvider] = useState(null);
 
     const saveApiKey = (val) => {
         setApiKey(val);
         localStorage.setItem('groq_token', val);
+    };
+
+    const saveHfToken = (val) => {
+        setHfToken(val);
+        localStorage.setItem('hf_token', val);
     };
 
     const addHeadline = () => {
@@ -50,8 +58,8 @@ const SentimentAnalyzer = () => {
             return;
         }
 
-        if (!apiKey.trim()) {
-            setError('Please enter your Groq API Key.');
+        if (!apiKey.trim() && !hfToken.trim()) {
+            setError('Please enter a Groq API Key or a Hugging Face Token.');
             return;
         }
 
@@ -62,7 +70,7 @@ const SentimentAnalyzer = () => {
             const response = await fetch('/api/sentiment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ texts: validTexts, token: apiKey.trim() })
+                body: JSON.stringify({ texts: validTexts, token: apiKey.trim() || undefined, hfToken: hfToken.trim() || undefined })
             });
 
             const data = await response.json();
@@ -74,6 +82,7 @@ const SentimentAnalyzer = () => {
             }
 
             setResults(data.results);
+            setProvider(data.provider || 'groq');
         } catch (err) {
             setError('Could not connect to the backend server. Make sure it is running.');
         }
@@ -140,6 +149,28 @@ const SentimentAnalyzer = () => {
                     />
                     <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" className="text-xs text-fintech-accent underline flex items-center px-2">Get API Key</a>
                 </div>
+
+                {/* Hugging Face Fallback Token */}
+                <button 
+                    onClick={() => setShowFallback(!showFallback)}
+                    className="flex items-center gap-2 text-xs text-slate-500 hover:text-slate-300 transition-colors mb-2"
+                >
+                    <Shield size={12} />
+                    <span>Backup: Hugging Face API</span>
+                    <ChevronDown size={12} className={`transition-transform ${showFallback ? 'rotate-180' : ''}`} />
+                </button>
+                {showFallback && (
+                    <div className="mb-6 flex gap-3 animate-fadeIn">
+                        <input 
+                            type="password"
+                            placeholder="Paste your Hugging Face Token (hf_...)"
+                            value={hfToken}
+                            onChange={(e) => saveHfToken(e.target.value)}
+                            className="flex-1 bg-amber-900/20 border border-amber-500/20 rounded-xl px-4 py-2 text-white placeholder-slate-600 focus:border-amber-400/50 outline-none transition-all text-sm"
+                        />
+                        <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noreferrer" className="text-xs text-amber-400 underline flex items-center px-2">Get Token</a>
+                    </div>
+                )}
 
                 <div className="space-y-3">
                     {headlines.map((headline, index) => (
@@ -212,6 +243,15 @@ const SentimentAnalyzer = () => {
                         <h3 className="text-xl font-bold text-white flex items-center gap-2">
                             <Sparkles className="text-fintech-accent" size={20} />
                             Analysis Results
+                            {provider && (
+                                <span className={`ml-auto text-xs font-medium px-3 py-1 rounded-full ${
+                                    provider === 'groq' 
+                                        ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' 
+                                        : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                }`}>
+                                    via {provider === 'groq' ? 'Groq (Llama-3)' : 'HuggingFace (FinBERT)'}
+                                </span>
+                            )}
                         </h3>
 
                         <div className="grid grid-cols-3 gap-4 mb-6">

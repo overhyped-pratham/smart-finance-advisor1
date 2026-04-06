@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Cpu, Loader2, Send, Zap, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Cpu, Loader2, Send, Zap, AlertTriangle, CheckCircle2, Shield, ChevronDown } from 'lucide-react';
 
 const SAMPLE_PROMPTS = [
     "Analyze the market outlook for Apple stock in Q2 2026:",
@@ -17,10 +17,18 @@ const MarketAnalyzer = () => {
     const [error, setError] = useState(null);
     const [aiStatus, setAiStatus] = useState(null);
     const [apiKey, setApiKey] = useState(localStorage.getItem('groq_token') || '');
+    const [hfToken, setHfToken] = useState(localStorage.getItem('hf_token') || '');
+    const [showFallback, setShowFallback] = useState(false);
+    const [provider, setProvider] = useState(null);
 
     const saveApiKey = (val) => {
         setApiKey(val);
         localStorage.setItem('groq_token', val);
+    };
+
+    const saveHfToken = (val) => {
+        setHfToken(val);
+        localStorage.setItem('hf_token', val);
     };
 
     useEffect(() => {
@@ -43,8 +51,8 @@ const MarketAnalyzer = () => {
             return;
         }
 
-        if (!apiKey.trim()) {
-            setError('Please enter your Groq API Key.');
+        if (!apiKey.trim() && !hfToken.trim()) {
+            setError('Please enter a Groq API Key or a Hugging Face Token.');
             return;
         }
 
@@ -56,7 +64,7 @@ const MarketAnalyzer = () => {
             const res = await fetch('/api/market-analysis', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt: prompt.trim(), max_tokens: 250, token: apiKey.trim() })
+                body: JSON.stringify({ prompt: prompt.trim(), max_tokens: 250, token: apiKey.trim() || undefined, hfToken: hfToken.trim() || undefined })
             });
 
             const data = await res.json();
@@ -68,6 +76,7 @@ const MarketAnalyzer = () => {
             }
 
             setResponse(data);
+            setProvider(data.provider || 'groq');
         } catch (err) {
             setError('Could not connect to the backend. Make sure npm run dev is running.');
         }
@@ -81,6 +90,9 @@ const MarketAnalyzer = () => {
             <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-sm ${isOnline ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300' : 'bg-red-500/10 border-red-500/20 text-red-300'}`}>
                 <CheckCircle2 size={16} />
                 <span>Market Analysis is <strong>{isOnline ? 'online' : 'offline'}</strong>.</span>
+                {aiStatus?.fallback === 'huggingface' && (
+                    <span className="ml-auto text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-full">HF Backup Ready</span>
+                )}
             </div>
 
             <div className="bg-fintech-darkCard/40 backdrop-blur-xl rounded-2xl p-6 shadow-glass border border-white/5 relative overflow-hidden">
@@ -104,6 +116,28 @@ const MarketAnalyzer = () => {
                     />
                     <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" className="text-xs text-fintech-secondary underline flex items-center px-2">Get API Key</a>
                 </div>
+
+                {/* Hugging Face Fallback Token */}
+                <button 
+                    onClick={() => setShowFallback(!showFallback)}
+                    className="flex items-center gap-2 text-xs text-slate-500 hover:text-slate-300 transition-colors mb-3"
+                >
+                    <Shield size={12} />
+                    <span>Backup: Hugging Face API</span>
+                    <ChevronDown size={12} className={`transition-transform ${showFallback ? 'rotate-180' : ''}`} />
+                </button>
+                {showFallback && (
+                    <div className="mb-4 flex gap-3 animate-fadeIn">
+                        <input 
+                            type="password"
+                            placeholder="Paste your Hugging Face Token (hf_...)"
+                            value={hfToken}
+                            onChange={(e) => saveHfToken(e.target.value)}
+                            className="flex-1 bg-amber-900/20 border border-amber-500/20 rounded-xl px-4 py-2 text-white placeholder-slate-600 focus:border-amber-400/50 outline-none transition-all text-sm"
+                        />
+                        <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noreferrer" className="text-xs text-amber-400 underline flex items-center px-2">Get Token</a>
+                    </div>
+                )}
 
                 <div className="flex flex-wrap gap-2 mb-4">
                     {SAMPLE_PROMPTS.slice(0, 3).map((sp, i) => (
@@ -169,6 +203,15 @@ const MarketAnalyzer = () => {
                         <h4 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
                             <Zap className="text-fintech-secondary" size={18} />
                             AI-Generated Market Analysis
+                            {provider && (
+                                <span className={`ml-auto text-xs font-medium px-3 py-1 rounded-full ${
+                                    provider === 'groq' 
+                                        ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' 
+                                        : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                }`}>
+                                    via {provider === 'groq' ? 'Groq (Llama-3)' : 'HuggingFace (Mistral-7B)'}
+                                </span>
+                            )}
                         </h4>
                         
                         <div className="bg-fintech-primary/30 rounded-xl p-4 mb-3 border border-white/5">
