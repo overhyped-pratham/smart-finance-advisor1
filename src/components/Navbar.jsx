@@ -2,6 +2,7 @@ import React from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { Sun, Moon, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import BrokerConnect from './BrokerConnect';
 
 const Navbar = ({ toggleSidebar }) => {
     const { theme, toggleTheme } = useFinance();
@@ -27,17 +28,7 @@ const Navbar = ({ toggleSidebar }) => {
                 >
                     {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
                 </button>
-                <button
-                    onClick={async () => {
-                        const res = await fetch('/api/zerodha/login');
-                        const data = await res.json();
-                        if (data.url) window.location.href = data.url;
-                    }}
-                    className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-fintech-accent/10 text-fintech-accent hover:bg-fintech-accent hover:text-white border border-fintech-accent/30 rounded-lg transition-all duration-300"
-                >
-                    <img src="https://kite.zerodha.com/static/images/kite-logo.svg" alt="Zerodha" className="w-3 h-3" />
-                    Connect Kite
-                </button>
+                <BrokerConnect />
                 <div className="h-8 w-8 rounded-full bg-fintech-accent text-white flex items-center justify-center font-bold">
                     U
                 </div>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Radar, Loader2, Sparkles, AlertCircle, RefreshCw, BarChart } from 'lucide-react';
+import { Radar, Loader2, Sparkles, AlertCircle, RefreshCw, BarChart, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 const DailyScanner = () => {
     const [scanData, setScanData] = useState(null);
@@ -11,12 +11,18 @@ const DailyScanner = () => {
         setLoading(true);
         setError(null);
         try {
-            const res = await fetch('http://localhost:5001/scan');
-            const data = await res.json();
+            // Use serverless API instead of localhost:5001
+            const res = await fetch('/api/scan');
+            let data;
+            try {
+                data = await res.json();
+            } catch {
+                throw new Error('Scanner returned invalid response. Try again.');
+            }
             if (!res.ok) throw new Error(data.error || 'Failed to complete market scan.');
             setScanData(data);
         } catch (err) {
-            setError(err.message || "Failed to reach the AI scanner microservice.");
+            setError(err.message || "Failed to reach the AI scanner.");
         } finally {
             setLoading(false);
         }
@@ -28,6 +34,14 @@ const DailyScanner = () => {
             case 'SELL': return 'text-red-400 bg-red-500/10 border-red-500/30';
             case 'HOLD': return 'text-amber-400 bg-amber-500/10 border-amber-500/30';
             default: return 'text-slate-400 bg-slate-500/10 border-slate-500/30';
+        }
+    };
+
+    const getSignalIcon = (signal) => {
+        switch (signal) {
+            case 'BUY': return <TrendingUp size={14} />;
+            case 'SELL': return <TrendingDown size={14} />;
+            default: return <Minus size={14} />;
         }
     };
 
@@ -43,7 +57,7 @@ const DailyScanner = () => {
                             Daily AI Market Scanner
                         </h3>
                         <p className="text-slate-400 text-sm mt-1">
-                            Analyzes the NSE equity database using TA indicators (RSI & MACD) on parallel threads to find top technical opportunities.
+                            Analyzes top NSE stocks using RSI & MACD indicators to find technical opportunities.
                         </p>
                     </div>
                     <button
@@ -79,8 +93,8 @@ const DailyScanner = () => {
                                 <Radar className="text-indigo-500/30 animate-ping absolute top-0 left-0" size={48} />
                                 <Radar className="text-indigo-400 relative z-10" size={48} />
                             </div>
-                            <p className="text-slate-300 mt-6 font-medium tracking-wide">Executing Parallel Strategy Scan...</p>
-                            <p className="text-slate-500 text-xs mt-2">Fetching live yfinance data & computing RSI/MACD across the NSE.</p>
+                            <p className="text-slate-300 mt-6 font-medium tracking-wide">Scanning NSE Stocks...</p>
+                            <p className="text-slate-500 text-xs mt-2">Computing RSI & MACD across top stocks via Yahoo Finance.</p>
                         </motion.div>
                     )}
 
@@ -102,20 +116,41 @@ const DailyScanner = () => {
                             <div className="flex items-center justify-between mb-4 bg-indigo-900/30 p-3 rounded-lg border border-indigo-500/20">
                                 <p className="text-sm text-indigo-200">
                                     <Sparkles size={14} className="inline mr-1.5 align-text-bottom" />
-                                    Scanned <strong>{scanData.scanned_count}</strong> stocks randomly from total <strong>{scanData.total_exchange_count}</strong> NSE tickers.
+                                    Scanned <strong>{scanData.scanned_count}</strong> stocks from top <strong>{scanData.total_exchange_count}</strong> NSE tickers.
                                 </p>
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                 {scanData.ai_picks.map((pick, i) => (
-                                    <div key={i} className="bg-fintech-primary/40 border border-white/5 rounded-xl p-4 flex items-center justify-between hover:bg-fintech-primary/60 transition-colors">
-                                        <div>
-                                            <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1 block">#{i + 1} Recommendation</span>
-                                            <h4 className="text-lg font-bold text-white">{pick.stock}</h4>
+                                    <div key={i} className="bg-fintech-primary/40 border border-white/5 rounded-xl p-4 hover:bg-fintech-primary/60 transition-colors">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <div>
+                                                <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1 block">#{i + 1} Pick</span>
+                                                <h4 className="text-lg font-bold text-white">{pick.stock}</h4>
+                                            </div>
+                                            <div className={`px-4 py-1.5 rounded-full text-xs font-bold border flex items-center gap-1.5 ${getSignalColor(pick.signal)}`}>
+                                                {getSignalIcon(pick.signal)}
+                                                {pick.signal}
+                                            </div>
                                         </div>
-                                        <div className={`px-4 py-1.5 rounded-full text-xs font-bold border ${getSignalColor(pick.signal)}`}>
-                                            {pick.signal}
-                                        </div>
+                                        {pick.currentPrice && (
+                                            <p className="text-slate-400 text-xs">₹{pick.currentPrice}</p>
+                                        )}
+                                        {pick.rsi !== null && (
+                                            <div className="flex gap-3 mt-2 text-xs">
+                                                <span className="text-slate-500">RSI: <span className="text-slate-300">{pick.rsi}</span></span>
+                                                {pick.macd !== null && (
+                                                    <span className="text-slate-500">MACD: <span className="text-slate-300">{pick.macd}</span></span>
+                                                )}
+                                            </div>
+                                        )}
+                                        {pick.reasons && pick.reasons.length > 0 && (
+                                            <div className="mt-2 flex flex-wrap gap-1">
+                                                {pick.reasons.slice(0, 2).map((reason, j) => (
+                                                    <span key={j} className="text-[10px] bg-slate-800/80 text-slate-400 px-2 py-0.5 rounded-full">{reason}</span>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                                 {scanData.ai_picks.length === 0 && (

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, Loader2, Target, BarChart3, Activity, Search } from 'lucide-react';
+import { TrendingUp, TrendingDown, Loader2, Target, BarChart3, Activity, Search, ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
 
 const POPULAR_STOCKS = [
     'RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 
@@ -19,33 +19,52 @@ const ZerodhaPredictor = () => {
         
         setError(null);
         setLoading(true);
+        setPrediction(null);
 
         try {
-            const apiSymbol = symbolToFetch.toUpperCase();
-            // Append .NS for common Indian stocks if no suffix exists and usually it's an Indian app context, 
-            // but we'll let user type '.NS' if needed or just use as is for global US stocks.
+            const apiSymbol = symbolToFetch.toUpperCase().trim();
             const querySymbol = apiSymbol.includes('.') ? apiSymbol : `${apiSymbol}.NS`;
 
-            const res = await fetch(`/api/stock/${querySymbol}`);
-            const data = await res.json();
+            // Use query parameter format (Vercel-compatible)
+            let res = await fetch(`/api/stock?symbol=${encodeURIComponent(querySymbol)}`);
+            let data;
+            
+            try {
+                data = await res.json();
+            } catch {
+                throw new Error('Server returned invalid response. API may be temporarily down.');
+            }
 
             if (!res.ok) {
-                // If .NS failed, fallback to raw input (maybe it's a US stock like AAPL)
+                // If .NS failed, fallback to raw input (for US stocks like AAPL)
                 if (!apiSymbol.includes('.')) {
-                   const fallbackRes = await fetch(`/api/stock/${apiSymbol}`);
-                   const fallbackData = await fallbackRes.json();
-                   if (!fallbackRes.ok) throw new Error(fallbackData.error || 'Stock symbol not found.');
-                   
-                   setSelectedStock({ symbol: fallbackData.symbol, prices: fallbackData.prices });
-                   setPrediction(null);
-                   setCustomQuery('');
-                   return;
+                    const fallbackRes = await fetch(`/api/stock?symbol=${encodeURIComponent(apiSymbol)}`);
+                    let fallbackData;
+                    try {
+                        fallbackData = await fallbackRes.json();
+                    } catch {
+                        throw new Error('Could not fetch stock data. Try again later.');
+                    }
+                    if (!fallbackRes.ok) throw new Error(fallbackData.error || 'Stock symbol not found.');
+                    
+                    setSelectedStock({ 
+                        symbol: fallbackData.symbol, 
+                        prices: fallbackData.prices,
+                        currency: fallbackData.currency,
+                        exchange: fallbackData.exchange
+                    });
+                    setCustomQuery('');
+                    return;
                 }
                 throw new Error(data.error || 'Stock symbol not found.');
             }
 
-            setSelectedStock({ symbol: data.symbol, prices: data.prices });
-            setPrediction(null);
+            setSelectedStock({ 
+                symbol: data.symbol, 
+                prices: data.prices,
+                currency: data.currency || 'INR',
+                exchange: data.exchange || 'NSE'
+            });
             setCustomQuery('');
         } catch (err) {
             setError(err.message || 'Error fetching live stock market data.');
@@ -65,8 +84,8 @@ const ZerodhaPredictor = () => {
         setPrediction(null);
 
         try {
-            // Predict via Python AI microservice
-            const response = await fetch('http://localhost:5001/predict', {
+            // Use serverless API instead of localhost Python service
+            const response = await fetch('/api/predict', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -75,7 +94,12 @@ const ZerodhaPredictor = () => {
                 })
             });
 
-            const data = await response.json();
+            let data;
+            try {
+                data = await response.json();
+            } catch {
+                throw new Error('Prediction API returned invalid response.');
+            }
 
             if (!response.ok) {
                 throw new Error(data.error || 'Failed to predict stock price.');
@@ -84,10 +108,22 @@ const ZerodhaPredictor = () => {
             setPrediction(data);
         } catch (err) {
             console.error('Prediction Error:', err);
-            setError('Could not connect to the Zerodha Prediction Model. Ensure python ai-service/app.py is running on port 5001.');
+            setError(err.message || 'Could not connect to the prediction API.');
         } finally {
             setLoading(false);
         }
+    };
+
+    const getTrendIcon = (trend) => {
+        if (trend === 'Bullish') return <ArrowUpRight className="text-emerald-400" size={20} />;
+        if (trend === 'Bearish') return <ArrowDownRight className="text-red-400" size={20} />;
+        return <Minus className="text-amber-400" size={20} />;
+    };
+
+    const getTrendColor = (trend) => {
+        if (trend === 'Bullish') return 'text-emerald-400';
+        if (trend === 'Bearish') return 'text-red-400';
+        return 'text-amber-400';
     };
 
     return (
@@ -99,10 +135,10 @@ const ZerodhaPredictor = () => {
                     <div>
                         <h3 className="text-xl font-bold text-white flex items-center gap-2">
                             <TrendingUp className="text-emerald-400" size={24} />
-                            Zerodha Stock Predictor
+                            Stock Predictor
                         </h3>
                         <p className="text-slate-400 text-sm mt-1">
-                            Machine Learning powered forecasts based on historical market data trends.
+                            ML-powered forecasts based on historical market data trends.
                         </p>
                     </div>
                     <div className="flex items-center gap-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full text-xs font-medium">
@@ -150,8 +186,13 @@ const ZerodhaPredictor = () => {
                             <div className="flex items-center gap-2">
                                 <BarChart3 size={16} className="text-slate-400" />
                                 <span className="text-slate-300 text-sm font-medium">1-Month Historical Price: <strong className="text-white">{selectedStock.symbol}</strong></span>
+                                {selectedStock.exchange && (
+                                    <span className="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full">{selectedStock.exchange}</span>
+                                )}
                             </div>
-                            <span className="text-emerald-400 text-xs font-bold">Latest: ₹{selectedStock.prices[selectedStock.prices.length - 1]}</span>
+                            <span className="text-emerald-400 text-xs font-bold">
+                                {selectedStock.currency === 'INR' ? '₹' : '$'}{selectedStock.prices[selectedStock.prices.length - 1]}
+                            </span>
                         </div>
                         <div className="flex items-end gap-1 h-16">
                             {selectedStock.prices.map((price, idx) => {
@@ -161,7 +202,7 @@ const ZerodhaPredictor = () => {
                                 return (
                                     <div key={idx} className="flex-1 bg-slate-800 rounded-t-sm hover:bg-emerald-500/50 transition-colors group relative" style={{ height: `${Math.max(10, height)}%` }}>
                                         <div className="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-black text-xs px-2 py-1 rounded text-white whitespace-nowrap transition-opacity z-10">
-                                            ₹{price}
+                                            {selectedStock.currency === 'INR' ? '₹' : '$'}{price}
                                         </div>
                                     </div>
                                 );
@@ -176,7 +217,7 @@ const ZerodhaPredictor = () => {
                             type="text"
                             value={customQuery}
                             onChange={(e) => setCustomQuery(e.target.value)}
-                            placeholder="Enter any stock symbol (e.g., ITC, TATAMOTORS)"
+                            placeholder="Enter any stock symbol (e.g., ITC, TATAMOTORS, AAPL)"
                             className="flex-1 bg-fintech-primary/40 text-white placeholder-slate-500 border border-white/10 rounded-xl px-4 py-2 focus:border-emerald-500/50 outline-none transition-colors"
                         />
                         <button type="submit" disabled={loading} className="bg-fintech-primary/60 hover:bg-emerald-500/20 text-emerald-400 border border-white/10 hover:border-emerald-500/30 px-4 py-2 rounded-xl transition-all flex items-center gap-2 font-medium disabled:opacity-50">
@@ -226,17 +267,33 @@ const ZerodhaPredictor = () => {
                             <div className="bg-gradient-to-br from-emerald-900/40 to-fintech-darkBg rounded-2xl p-6 border border-emerald-500/20 shadow-[0_0_30px_rgba(52,211,153,0.1)]">
                                 <p className="text-emerald-400 text-sm font-semibold uppercase tracking-wider mb-1">Prediction Result</p>
                                 <div className="flex items-end gap-3 mb-4">
-                                    <h4 className="text-4xl font-extrabold text-white">₹{prediction.predicted_price}</h4>
+                                    <h4 className="text-4xl font-extrabold text-white">
+                                        {selectedStock?.currency === 'INR' ? '₹' : '$'}{prediction.predicted_price}
+                                    </h4>
+                                    <div className="flex items-center gap-1 mb-1 pb-1">
+                                        {getTrendIcon(prediction.trend)}
+                                        <span className={`text-sm font-medium ${getTrendColor(prediction.trend)}`}>
+                                            {prediction.change_percent > 0 ? '+' : ''}{prediction.change_percent}%
+                                        </span>
+                                    </div>
                                     <span className="text-slate-400 text-sm mb-1 pb-1">for {prediction.symbol} tomorrow</span>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
                                     <div className="bg-black/30 rounded-lg p-3">
                                         <p className="text-slate-500 text-xs mb-1">Model Used</p>
-                                        <p className="text-slate-300 font-medium">{prediction.model}</p>
+                                        <p className="text-slate-300 font-medium text-xs">{prediction.model}</p>
                                     </div>
                                     <div className="bg-black/30 rounded-lg p-3">
                                         <p className="text-slate-500 text-xs mb-1">Confidence</p>
                                         <p className="text-emerald-400 font-medium">{prediction.confidence}</p>
+                                    </div>
+                                    <div className="bg-black/30 rounded-lg p-3">
+                                        <p className="text-slate-500 text-xs mb-1">Trend</p>
+                                        <p className={`font-medium ${getTrendColor(prediction.trend)}`}>{prediction.trend}</p>
+                                    </div>
+                                    <div className="bg-black/30 rounded-lg p-3">
+                                        <p className="text-slate-500 text-xs mb-1">R² Score</p>
+                                        <p className="text-slate-300 font-medium">{prediction.r_squared}</p>
                                     </div>
                                 </div>
                             </div>

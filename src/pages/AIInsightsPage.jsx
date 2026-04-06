@@ -39,12 +39,10 @@ const AIInsightsPage = () => {
                                 AI-Powered Insights
                             </h1>
                             <p className="text-slate-400">
-                                Analyze financial news sentiment and get market analysis.
+                                Analyze financial news sentiment, get market analysis, and stock predictions.
                             </p>
                         </div>
                     </motion.div>
-
-
 
                     <SentimentAnalyzer />
 
@@ -57,7 +55,7 @@ const AIInsightsPage = () => {
 
                     {/* Divider */}
                     <div className="my-12 border-t border-white/5 relative">
-                        <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 bg-fintech-darkBg px-4 text-slate-600 text-sm">Zerodha API</span>
+                        <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 bg-fintech-darkBg px-4 text-slate-600 text-sm">Stock Prediction</span>
                     </div>
 
                     <ZerodhaPredictor />
