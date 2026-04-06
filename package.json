@@ -19,7 +19,7 @@
     "groq-sdk": "^1.1.2",
     "kiteconnect": "^5.2.0",
     "lucide-react": "^1.7.0",
-    "node-fetch": "^3.3.2",
+    "node-fetch": "^2.7.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.14.0",

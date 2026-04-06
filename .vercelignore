@@ -1,6 +1,5 @@
 node_modules
 ai-service
-server
 .git
 *.pyc
 __pycache__
