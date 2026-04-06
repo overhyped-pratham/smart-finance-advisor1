@@ -6,35 +6,69 @@ export const useFinance = () => {
     return useContext(FinanceContext);
 };
 
+// Helper to safely read from localStorage
+const loadFromStorage = (key, fallback) => {
+    try {
+        const stored = localStorage.getItem(key);
+        return stored ? JSON.parse(stored) : fallback;
+    } catch {
+        return fallback;
+    }
+};
+
+// Helper to save to localStorage
+const saveToStorage = (key, value) => {
+    try {
+        localStorage.setItem(key, JSON.stringify(value));
+    } catch (err) {
+        console.warn('Failed to save to localStorage:', err);
+    }
+};
+
 export const FinanceProvider = ({ children }) => {
     const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
-    const [budget, setBudget] = useState(0);
-    const [expenses, setExpenses] = useState([]);
+    const [budget, setBudgetState] = useState(() => loadFromStorage('finance_budget', 0));
+    const [expenses, setExpenses] = useState(() => loadFromStorage('finance_expenses', []));
+    const [dataLoaded, setDataLoaded] = useState(false);
 
-    // Fetch initial data from backend
+    // Try to fetch from backend API, but fall back to localStorage
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch budget
+                // Try fetching budget from API
                 const budgetRes = await fetch('/api/budget');
                 if (budgetRes.ok) {
                     const budgetData = await budgetRes.json();
-                    setBudget(budgetData.amount);
+                    if (budgetData.amount && budgetData.amount > 0) {
+                        setBudgetState(budgetData.amount);
+                        saveToStorage('finance_budget', budgetData.amount);
+                    }
                 }
+            } catch (err) {
+                // API not available - use localStorage (already loaded via useState initializer)
+                console.log('Budget API not available, using local storage.');
+            }
 
-                // Fetch expenses
+            try {
+                // Try fetching expenses from API
                 const expensesRes = await fetch('/api/expenses');
                 if (expensesRes.ok) {
                     const expensesData = await expensesRes.json();
-                    setExpenses(expensesData);
+                    if (Array.isArray(expensesData) && expensesData.length > 0) {
+                        setExpenses(expensesData);
+                        saveToStorage('finance_expenses', expensesData);
+                    }
                 }
             } catch (err) {
-                console.error("Error connecting to backend API:", err);
+                console.log('Expenses API not available, using local storage.');
             }
+
+            setDataLoaded(true);
         };
         fetchData();
     }, []);
 
+    // Theme persistence
     useEffect(() => {
         localStorage.setItem('theme', theme);
         if (theme === 'dark') {
@@ -44,9 +78,24 @@ export const FinanceProvider = ({ children }) => {
         }
     }, [theme]);
 
-    // Expose a setter for budget that updates the DB
+    // Persist budget to localStorage whenever it changes
+    useEffect(() => {
+        if (dataLoaded || budget > 0) {
+            saveToStorage('finance_budget', budget);
+        }
+    }, [budget, dataLoaded]);
+
+    // Persist expenses to localStorage whenever they change
+    useEffect(() => {
+        if (dataLoaded || expenses.length > 0) {
+            saveToStorage('finance_expenses', expenses);
+        }
+    }, [expenses, dataLoaded]);
+
+    // Update budget - saves locally + tries API
     const updateBudget = async (newAmount) => {
-        setBudget(newAmount);
+        setBudgetState(newAmount);
+        saveToStorage('finance_budget', newAmount);
         try {
             await fetch('/api/budget', {
                 method: 'POST',
@@ -54,12 +103,9 @@ export const FinanceProvider = ({ children }) => {
                 body: JSON.stringify({ amount: newAmount })
             });
         } catch (err) {
-            console.error(err);
+            // API not available, already saved to localStorage
         }
     };
-
-    // No local storage sync for expenses needed because we use DB
-    // Remove the expenses useEffect
 
     const toggleTheme = () => {
         setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
@@ -68,7 +114,9 @@ export const FinanceProvider = ({ children }) => {
     const addExpense = async (expense) => {
         const id = Date.now().toString();
         const newExpense = { ...expense, id };
-        setExpenses([...expenses, newExpense]); // Optimistic update
+        const updatedExpenses = [...expenses, newExpense];
+        setExpenses(updatedExpenses);
+        saveToStorage('finance_expenses', updatedExpenses);
         
         try {
             await fetch('/api/expenses', {
@@ -77,19 +125,21 @@ export const FinanceProvider = ({ children }) => {
                 body: JSON.stringify(newExpense)
             });
         } catch (err) {
-            console.error(err);
+            // API not available, already saved to localStorage
         }
     };
 
     const deleteExpense = async (id) => {
-        setExpenses(expenses.filter(e => e.id !== id)); // Optimistic update
+        const updatedExpenses = expenses.filter(e => e.id !== id);
+        setExpenses(updatedExpenses);
+        saveToStorage('finance_expenses', updatedExpenses);
         
         try {
-            await fetch(`/api/expenses/${id}`, {
+            await fetch(`/api/expenses?id=${id}`, {
                 method: 'DELETE'
             });
         } catch (err) {
-            console.error(err);
+            // API not available, already saved to localStorage
         }
     };
 
