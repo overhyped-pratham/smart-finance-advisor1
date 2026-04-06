@@ -49,20 +49,23 @@ const FinancialAnalysisPage = () => {
         const tips = [];
         
         // Tip based on spending habits
+        const safeBudget = budget > 0 ? budget : (totalExpenses > 0 ? totalExpenses : 1);
         const highestCategory = Object.keys(categoryTotals).reduce((a, b) => categoryTotals[a] > categoryTotals[b] ? a : b, '');
-        if (highestCategory && categoryTotals[highestCategory] > budget * 0.4) {
-            tips.push(`Your spending on ${highestCategory} is quite high (${((categoryTotals[highestCategory]/budget)*100).toFixed(0)}% of budget). Consider reviewing subscriptions or finding cheaper alternatives in this category.`);
+        if (highestCategory && categoryTotals[highestCategory] > safeBudget * 0.4) {
+            tips.push(`Your spending on ${highestCategory} is quite high (${((categoryTotals[highestCategory]/safeBudget)*100).toFixed(0)}%). Consider reviewing subscriptions or finding cheaper alternatives in this category.`);
         } else {
             tips.push(`Your expenses are generally well-distributed. Continue tracking small discretionary purchases to maintain this balance.`);
         }
 
         // Tip based on savings potential
-        if (netSavings > budget * 0.2) {
+        if (budget > 0 && netSavings > budget * 0.2) {
             tips.push(`You have a strong savings rate! Consider automating your monthly investments to maximize compound interest.`);
-        } else if (netSavings > 0) {
+        } else if (budget > 0 && netSavings > 0) {
             tips.push(`You are saving money, but try applying the 50/30/20 rule to increase your savings rate to at least 20% of your budget.`);
-        } else {
+        } else if (budget > 0) {
             tips.push(`You are currently spending more than or equal to your budget. Prioritize cutting non-essential expenses to build a safety net.`);
+        } else {
+            tips.push(`You haven't defined a monthly budget. Consider setting one to better track your savings goals and visualize your financial health!`);
         }
 
         // Tip for long-term planning
@@ -95,12 +98,12 @@ const FinancialAnalysisPage = () => {
                         </div>
                     </div>
 
-                    {budget === 0 ? (
+                    {(!budget || budget === 0) && (!expenses || expenses.length === 0) ? (
                         <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl p-6 flex items-start gap-4 text-yellow-800 dark:text-yellow-200">
                             <AlertCircle className="shrink-0" />
                             <div>
-                                <h3 className="font-bold text-lg mb-1">No Budget Defined</h3>
-                                <p>Please go to the Expenses page to enter your monthly budget and expenses to see your analysis.</p>
+                                <h3 className="font-bold text-lg mb-1">No Budget or Expenses Defined</h3>
+                                <p>Please go to the Expenses page to enter your monthly budget or expenses to see your analysis.</p>
                             </div>
                         </div>
                     ) : (
@@ -112,7 +115,7 @@ const FinancialAnalysisPage = () => {
                                     <ul className="space-y-3 text-lg font-medium dark:text-slate-200">
                                         <li className="flex gap-2">
                                             <span className="text-slate-500 w-32">• Budget:</span> 
-                                            <span>${budget.toFixed(2)}</span>
+                                            <span>${(Number(budget) || 0).toFixed(2)}</span>
                                         </li>
                                         <li className="flex gap-2">
                                             <span className="text-slate-500 w-32">• Total Expenses:</span> 
