@@ -196,21 +196,22 @@ async function hfMarketAnalysisFallback(hfToken, prompt, maxTokens) {
 // Groq AI Integration (Llama-3.1-8b) + Hugging Face Fallback
 // ──────────────────────────────────────────────
 app.post('/api/sentiment', async (req, res) => {
-    const { texts, token, hfToken: bodyHfToken } = req.body;
+    const { texts, token: bodyToken, hfToken: bodyHfToken } = req.body;
+    const groqToken = bodyToken || process.env.GROQ_API_KEY;
     const hfToken = bodyHfToken || process.env.HF_TOKEN;
 
     if (!texts || !Array.isArray(texts) || texts.length === 0) {
         return res.status(400).json({ error: 'Please provide an array of texts for analysis.' });
     }
     
-    if (!token && !hfToken) {
+    if (!groqToken && !hfToken) {
         return res.status(401).json({ error: 'Please provide a Groq API Key or a Hugging Face Token.' });
     }
 
     // ── Try Groq first ──
-    if (token) {
+    if (groqToken) {
         try {
-            const client = new Groq({ apiKey: token });
+            const client = new Groq({ apiKey: groqToken });
             const completion = await client.chat.completions.create({
                 model: "llama-3.1-8b-instant",
                 messages: [
@@ -251,21 +252,22 @@ app.post('/api/sentiment', async (req, res) => {
 });
 
 app.post('/api/market-analysis', async (req, res) => {
-    const { prompt, max_tokens, token, hfToken: bodyHfToken } = req.body;
+    const { prompt, max_tokens, token: bodyToken, hfToken: bodyHfToken } = req.body;
+    const groqToken = bodyToken || process.env.GROQ_API_KEY;
     const hfToken = bodyHfToken || process.env.HF_TOKEN;
 
     if (!prompt) {
         return res.status(400).json({ error: 'Please provide a prompt.' });
     }
     
-    if (!token && !hfToken) {
+    if (!groqToken && !hfToken) {
         return res.status(401).json({ error: 'Please provide a Groq API Key or a Hugging Face Token.' });
     }
 
     // ── Try Groq first ──
-    if (token) {
+    if (groqToken) {
         try {
-            const client = new Groq({ apiKey: token });
+            const client = new Groq({ apiKey: groqToken });
             const completion = await client.chat.completions.create({
                 model: "llama-3.1-8b-instant",
                 messages: [
