@@ -27,9 +27,12 @@ export default async function handler(req, res) {
                 response_format: { type: "json_object" }
             });
             const data = JSON.parse(completion.choices[0].message.content);
+            const arr = Array.isArray(data) ? data : (data.results || data.sentiments || data.analysis || [data]);
             const results = texts.map((text, idx) => {
-                const item = (data.results || data)[idx] || { sentiment: 'neutral', confidence: 50 };
-                return { text, sentiment: item.sentiment.toLowerCase(), confidence: item.confidence };
+                const item = arr[idx] || {};
+                const sentiment = (item.sentiment || item.label || 'neutral').toString().toLowerCase();
+                const confidence = item.confidence || item.score || 50;
+                return { text, sentiment, confidence: typeof confidence === 'number' && confidence <= 1 ? Math.round(confidence * 100) : confidence };
             });
             return res.json({ results, provider: 'groq' });
         } catch (err) {
