@@ -49,19 +49,19 @@ const LandingPage = () => {
                 </motion.div>
 
                 {/* Features */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-24 max-w-5xl w-full">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-24 max-w-5xl w-full relative z-10">
                     <FeatureCard
-                        icon={<PieChart size={32} className="text-fintech-secondary" />}
+                        icon={<PieChart size={32} className="text-blue-400 group-hover:text-blue-300 transition-colors duration-300" />}
                         title="Expense Tracking"
                         desc="Easily categorize and monitor your daily spending patterns."
                     />
                     <FeatureCard
-                        icon={<BarChart3 size={32} className="text-fintech-accent" />}
+                        icon={<BarChart3 size={32} className="text-fintech-accent group-hover:text-cyan-200 transition-colors duration-300" />}
                         title="Budget Analysis"
                         desc="Real-time calculation of your net savings based on intuitive logic."
                     />
                     <FeatureCard
-                        icon={<Shield size={32} className="text-purple-500" />}
+                        icon={<Shield size={32} className="text-purple-400 group-hover:text-purple-300 transition-colors duration-300" />}
                         title="Investment Recommendations"
                         desc="Get curated, moderate-risk assets to grow your wealth safely."
                     />
@@ -81,14 +81,15 @@ const LandingPage = () => {
 
 const FeatureCard = ({ icon, title, desc }) => (
     <motion.div 
-        whileHover={{ y: -5 }}
-        className="bg-white dark:bg-fintech-darkCard p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 text-left"
+        whileHover={{ y: -5, scale: 1.02 }}
+        className="group bg-white/5 dark:bg-fintech-darkCard/30 backdrop-blur-xl p-8 rounded-3xl shadow-glass border border-white/10 dark:border-white/5 text-left transition-all duration-500 hover:border-white/20 relative overflow-hidden"
     >
-        <div className="bg-slate-50 dark:bg-slate-800/50 w-16 h-16 rounded-2xl flex items-center justify-center mb-6">
+        <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/5 rounded-full blur-[40px] group-hover:bg-white/10 transition-colors duration-500"></div>
+        <div className="bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800/40 dark:to-slate-800/10 backdrop-blur-md w-16 h-16 rounded-2xl flex items-center justify-center mb-6 shadow-inner border border-white/10">
             {icon}
         </div>
-        <h3 className="text-xl font-bold text-fintech-primary dark:text-white mb-3">{title}</h3>
-        <p className="text-slate-600 dark:text-slate-400">{desc}</p>
+        <h3 className="text-xl font-extrabold text-fintech-primary dark:text-white mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-slate-300 transition-all duration-300">{title}</h3>
+        <p className="text-slate-600 dark:text-slate-400 leading-relaxed">{desc}</p>
     </motion.div>
 );
 
