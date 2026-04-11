@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, TrendingDown, Loader2, Target, BarChart3, Activity, Search, ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
 
 const POPULAR_STOCKS = [
     'RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 
-    'ZOMATO', 'TATAMOTORS', 'SBIN', 'ITC'
+    'ZOMATO', 'TATAMOTORS', 'SBIN', 'ITC',
+    'ICICIBANK', 'BHARTIARTL', 'LT', 'BAJFINANCE',
+    'AAPL', 'TSLA', 'MSFT', 'NVDA'
 ];
 
 const ZerodhaPredictor = () => {
@@ -13,6 +15,43 @@ const ZerodhaPredictor = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [customQuery, setCustomQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearchingDropdown, setIsSearchingDropdown] = useState(false);
+    const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setSearchResults([]);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    useEffect(() => {
+        if (customQuery.trim().length < 2) {
+            setSearchResults([]);
+            return;
+        }
+        
+        const delayDebounceFn = setTimeout(async () => {
+            setIsSearchingDropdown(true);
+            try {
+                const res = await fetch(`/api/search-stock?q=${encodeURIComponent(customQuery)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setSearchResults(data.results || []);
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setIsSearchingDropdown(false);
+            }
+        }, 300);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [customQuery]);
 
     const fetchStockData = async (symbolToFetch) => {
         if (!symbolToFetch.trim()) return;
@@ -213,7 +252,7 @@ const ZerodhaPredictor = () => {
                     </div>
                 )}
 
-                <div className="mb-6">
+                <div className="mb-6 relative" ref={dropdownRef}>
                     <form onSubmit={handleCustomSearch} className="flex gap-3">
                         <input
                             type="text"
@@ -226,6 +265,44 @@ const ZerodhaPredictor = () => {
                             <Search size={16} /> Search
                         </button>
                     </form>
+
+                    {/* Autocomplete Dropdown */}
+                    <AnimatePresence>
+                        {(searchResults.length > 0 || isSearchingDropdown) && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="absolute z-50 left-0 right-[100px] top-full mt-2 bg-cf-surface-high border border-white/5 rounded-lg shadow-2xl overflow-hidden backdrop-blur-xl"
+                            >
+                                {isSearchingDropdown ? (
+                                    <div className="p-4 text-center text-cf-on-muted text-xs flex justify-center items-center">
+                                        <Loader2 size={14} className="animate-spin mr-2" /> Searching Global Markets...
+                                    </div>
+                                ) : (
+                                    <ul className="max-h-60 overflow-y-auto w-full custom-scrollbar">
+                                        {searchResults.map((result) => (
+                                            <li 
+                                                key={result.symbol} 
+                                                onClick={() => {
+                                                    setCustomQuery(result.symbol);
+                                                    setSearchResults([]);
+                                                    fetchStockData(result.symbol);
+                                                }}
+                                                className="px-4 py-3 hover:bg-cf-surface-lowest cursor-pointer border-b border-white/5 last:border-none flex justify-between items-center group transition-colors"
+                                            >
+                                                <div>
+                                                    <span className="font-bold text-cf-on-surface text-sm group-hover:text-cf-tertiary transition-colors">{result.symbol}</span>
+                                                    <span className="ml-2 text-xs text-cf-on-muted truncate inline-block max-w-[150px] sm:max-w-[200px] align-bottom">{result.name}</span>
+                                                </div>
+                                                <span className="text-[10px] bg-cf-surface-low px-1.5 py-0.5 rounded text-cf-on-muted uppercase font-semibold">{result.exchange}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
 
                 <div className="flex justify-start">
