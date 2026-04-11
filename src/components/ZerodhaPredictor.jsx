@@ -4,7 +4,7 @@ import { TrendingUp, TrendingDown, Loader2, Target, BarChart3, Activity, Search,
 
 const POPULAR_STOCKS = [
     'RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 
-    'ZOMATO', 'TATAMOTORS', 'SBIN', 'ITC',
+    'AXISBANK', 'TATAMOTORS', 'SBIN', 'ITC',
     'ICICIBANK', 'BHARTIARTL', 'LT', 'BAJFINANCE',
     'AAPL', 'TSLA', 'MSFT', 'NVDA'
 ];
