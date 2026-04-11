@@ -26,22 +26,22 @@ const ExpenseForm = () => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="bg-white dark:bg-fintech-darkCard p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
-            <h3 className="text-lg font-bold mb-4 dark:text-white">Add New Expense</h3>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <form onSubmit={handleSubmit} className="bg-cf-surface-high p-6 rounded">
+            <h3 className="font-display text-lg font-bold mb-5 text-cf-on-surface">Add New Expense</h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
                 <div className="md:col-span-1">
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Expense Name</label>
+                    <label className="text-label-sm text-cf-on-muted mb-2 block">Expense Name</label>
                     <input
                         type="text"
                         required
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="e.g. Groceries"
-                        className="w-full rounded-xl border border-slate-300 dark:border-slate-700 px-4 py-2 bg-transparent focus:ring-2 focus:ring-fintech-secondary focus:border-transparent outline-none dark:text-white transition-all"
+                        className="input-bottomline"
                     />
                 </div>
                 <div className="md:col-span-1">
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Amount ($)</label>
+                    <label className="text-label-sm text-cf-on-muted mb-2 block">Amount ($)</label>
                     <input
                         type="number"
                         required
@@ -50,27 +50,28 @@ const ExpenseForm = () => {
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
                         placeholder="0.00"
-                        className="w-full rounded-xl border border-slate-300 dark:border-slate-700 px-4 py-2 bg-transparent focus:ring-2 focus:ring-fintech-secondary focus:border-transparent outline-none dark:text-white transition-all"
+                        className="input-bottomline"
+                        style={{ fontVariantNumeric: 'tabular-nums' }}
                     />
                 </div>
                 <div className="md:col-span-1">
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Category</label>
+                    <label className="text-label-sm text-cf-on-muted mb-2 block">Category</label>
                     <select
                         value={category}
                         onChange={(e) => setCategory(e.target.value)}
-                        className="w-full rounded-xl border border-slate-300 dark:border-slate-700 px-4 py-2 bg-white dark:bg-fintech-darkCard focus:ring-2 focus:ring-fintech-secondary focus:border-transparent outline-none dark:text-white transition-all"
+                        className="input-bottomline cursor-pointer"
                     >
                         {categories.map(c => (
-                            <option key={c} value={c}>{c}</option>
+                            <option key={c} value={c} className="bg-cf-surface-high text-cf-on-surface">{c}</option>
                         ))}
                     </select>
                 </div>
                 <div className="md:col-span-1 flex items-end">
                     <button
                         type="submit"
-                        className="w-full bg-fintech-primary dark:bg-fintech-secondary hover:bg-slate-800 dark:hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors"
+                        className="btn-primary w-full flex items-center justify-center gap-2 text-sm"
                     >
-                        <PlusCircle size={18} />
+                        <PlusCircle size={16} />
                         Add Expense
                     </button>
                 </div>

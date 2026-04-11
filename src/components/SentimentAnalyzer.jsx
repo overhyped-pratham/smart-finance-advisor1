@@ -7,7 +7,12 @@ const SAMPLE_HEADLINES = [
     "Federal Reserve announces surprise interest rate cut",
     "Tech sector faces massive sell-off amid recession fears",
     "Inflation rises unexpectedly, consumer spending declines sharply",
-    "Tesla reports strong growth in EV deliveries, beating analyst expectations"
+    "Tesla reports strong growth in EV deliveries, beating analyst expectations",
+    "Global markets rally as supply chain constraints begin to ease",
+    "Oil prices plunge to 5-month low amid slow demand recovery",
+    "Nvidia unveils next-generation AI chip, sending shares up 8%",
+    "Major retail chain declares bankruptcy after consecutive quarterly losses",
+    "Housing market cools down as mortgage rates hit 7% mark"
 ];
 
 const SentimentAnalyzer = () => {
@@ -96,10 +101,10 @@ const SentimentAnalyzer = () => {
 
     const getSentimentColor = (sentiment) => {
         switch (sentiment?.toLowerCase()) {
-            case 'positive': return 'text-emerald-400';
-            case 'negative': return 'text-red-400';
-            case 'neutral': return 'text-amber-400';
-            default: return 'text-slate-400';
+            case 'positive': return 'text-cf-tertiary';
+            case 'negative': return 'text-cf-error';
+            case 'neutral': return 'text-cf-primary';
+            default: return 'text-cf-on-muted';
         }
     };
 
@@ -114,34 +119,35 @@ const SentimentAnalyzer = () => {
 
     const getSentimentGlow = (sentiment) => {
         switch (sentiment?.toLowerCase()) {
-            case 'positive': return 'shadow-[0_0_15px_rgba(52,211,153,0.3)] border-emerald-500/30';
-            case 'negative': return 'shadow-[0_0_15px_rgba(248,113,113,0.3)] border-red-500/30';
-            case 'neutral': return 'shadow-[0_0_15px_rgba(251,191,36,0.3)] border-amber-500/30';
-            default: return 'border-white/5';
+            case 'positive': return 'shadow-glow-tertiary';
+            case 'negative': return 'shadow-glow-error';
+            case 'neutral': return 'shadow-glow-primary';
+            default: return '';
         }
     };
 
     return (
         <div className="space-y-8">
-            <div className="bg-fintech-darkCard/40 backdrop-blur-xl rounded-2xl p-6 shadow-glass border border-white/5 relative overflow-hidden">
-                <div className="absolute -top-20 -right-20 w-40 h-40 bg-purple-500/10 rounded-full blur-[80px] pointer-events-none"></div>
+            <div className="bg-cf-surface-high rounded p-6 relative overflow-hidden">
+                {/* Ambient glow */}
+                <div className="absolute -top-20 -right-20 w-40 h-40 bg-cf-secondary/10 rounded-full blur-[80px] pointer-events-none"></div>
                 
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                        <Brain className="text-fintech-accent" size={24} />
+                    <h3 className="font-display text-xl font-bold text-cf-on-surface flex items-center gap-2">
+                        <Brain className="text-cf-primary" size={22} />
                         Sentiment Engine
                     </h3>
                     <button
                         onClick={loadSampleData}
-                        className="text-sm bg-fintech-secondary/20 hover:bg-fintech-secondary/40 text-fintech-accent border border-fintech-accent/20 px-4 py-2 rounded-xl transition-colors flex items-center gap-2"
+                        className="btn-ghost text-sm flex items-center gap-2"
                     >
                         <Sparkles size={14} />
-                        Load Sample Headlines
+                        Load Samples
                     </button>
                 </div>
 
-                <p className="text-slate-400 text-sm mb-6">
-                    Enter financial news headlines below. Llama-3 AI will classify each as <span className="text-emerald-400">Positive</span>, <span className="text-red-400">Negative</span>, or <span className="text-amber-400">Neutral</span> sentiment.
+                <p className="text-cf-on-muted text-sm mb-6">
+                    Enter financial news headlines below. AI will classify each as <span className="text-cf-tertiary">Positive</span>, <span className="text-cf-error">Negative</span>, or <span className="text-cf-primary">Neutral</span> sentiment.
                 </p>
 
                 <div className="mb-6 flex gap-3">
@@ -150,15 +156,15 @@ const SentimentAnalyzer = () => {
                         placeholder="Paste your Groq API Key (gsk_...)"
                         value={apiKey}
                         onChange={(e) => saveApiKey(e.target.value)}
-                        className="flex-1 bg-fintech-primary/40 border border-white/10 rounded-xl px-4 py-2 text-white placeholder-slate-600 focus:border-fintech-accent/50 outline-none transition-all text-sm"
+                        className="input-bottomline flex-1"
                     />
-                    <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" className="text-xs text-fintech-accent underline flex items-center px-2">Get API Key</a>
+                    <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" className="text-xs text-cf-primary flex items-center px-2 hover:underline">Get Key</a>
                 </div>
 
-                {/* Hugging Face Fallback Token */}
+                {/* Fallback tokens */}
                 <button 
                     onClick={() => setShowFallback(!showFallback)}
-                    className="flex items-center gap-2 text-xs text-slate-500 hover:text-slate-300 transition-colors mb-2"
+                    className="flex items-center gap-2 text-xs text-cf-on-muted hover:text-cf-on-surface transition-colors mb-3"
                 >
                     <Shield size={12} />
                     <span>Backup: Hugging Face / Gemini API</span>
@@ -166,25 +172,27 @@ const SentimentAnalyzer = () => {
                 </button>
                 {showFallback && (
                     <>
-                        <div className="mb-6 flex gap-3 animate-fadeIn">
+                        <div className="mb-4 flex gap-3 animate-fadeIn">
                             <input 
                                 type="password"
-                                placeholder="Paste your Hugging Face Token (hf_...)"
+                                placeholder="Hugging Face Token (hf_...)"
                                 value={hfToken}
                                 onChange={(e) => saveHfToken(e.target.value)}
-                                className="flex-1 bg-amber-900/20 border border-amber-500/20 rounded-xl px-4 py-2 text-white placeholder-slate-600 focus:border-amber-400/50 outline-none transition-all text-sm"
+                                className="input-bottomline flex-1"
+                                style={{ borderBottomColor: '#d674ff' }}
                             />
-                            <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noreferrer" className="text-xs text-amber-400 underline flex items-center px-2">Get HF Token</a>
+                            <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noreferrer" className="text-xs text-cf-secondary flex items-center px-2 hover:underline">Get Token</a>
                         </div>
-                        <div className="mb-6 flex gap-3 animate-fadeIn">
+                        <div className="mb-4 flex gap-3 animate-fadeIn">
                             <input 
                                 type="password"
-                                placeholder="Paste your Gemini API Key (AIza...)"
+                                placeholder="Gemini API Key (AIza...)"
                                 value={geminiToken}
                                 onChange={(e) => saveGeminiToken(e.target.value)}
-                                className="flex-1 bg-blue-900/20 border border-blue-500/20 rounded-xl px-4 py-2 text-white placeholder-slate-600 focus:border-blue-400/50 outline-none transition-all text-sm"
+                                className="input-bottomline flex-1"
+                                style={{ borderBottomColor: '#00eefc' }}
                             />
-                            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-xs text-blue-400 underline flex items-center px-2">Get Gemini Key</a>
+                            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-xs text-cf-primary-container flex items-center px-2 hover:underline">Get Key</a>
                         </div>
                     </>
                 )}
@@ -192,18 +200,18 @@ const SentimentAnalyzer = () => {
                 <div className="space-y-3">
                     {headlines.map((headline, index) => (
                         <div key={index} className="flex items-center gap-3">
-                            <span className="text-fintech-accent font-mono text-sm w-6 text-right shrink-0">{index + 1}.</span>
+                            <span className="text-cf-primary font-mono text-sm w-6 text-right shrink-0">{index + 1}.</span>
                             <input
                                 type="text"
                                 value={headline}
                                 onChange={(e) => updateHeadline(index, e.target.value)}
                                 placeholder="Enter a financial news headline..."
-                                className="flex-1 bg-fintech-primary/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:border-fintech-accent/50 focus:ring-1 focus:ring-fintech-accent/30 outline-none transition-all"
+                                className="input-bottomline flex-1"
                             />
                             {headlines.length > 1 && (
                                 <button
                                     onClick={() => removeHeadline(index)}
-                                    className="text-slate-600 hover:text-red-400 p-2 rounded-lg hover:bg-red-500/10 transition-colors shrink-0"
+                                    className="text-cf-on-muted hover:text-cf-error p-2 rounded hover:bg-cf-error/10 transition-colors shrink-0"
                                 >
                                     <Trash2 size={16} />
                                 </button>
@@ -215,22 +223,22 @@ const SentimentAnalyzer = () => {
                 <div className="flex gap-3 mt-6">
                     <button
                         onClick={addHeadline}
-                        className="text-sm border border-dashed border-white/10 text-slate-400 hover:text-white hover:border-white/30 px-4 py-2 rounded-xl transition-colors flex items-center gap-2"
+                        className="btn-ghost text-sm flex items-center gap-2"
                     >
                         <Plus size={14} /> Add Headline
                     </button>
                     <button
                         onClick={analyzeSentiment}
                         disabled={loading}
-                        className="ml-auto bg-gradient-to-r from-fintech-accent to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-black font-bold px-6 py-2 rounded-xl transition-all flex items-center gap-2 disabled:opacity-50 shadow-neon-cyan"
+                        className="btn-primary ml-auto flex items-center gap-2 text-sm disabled:opacity-50"
                     >
                         {loading ? (
                             <>
-                                <Loader2 size={18} className="animate-spin" /> Analyzing...
+                                <Loader2 size={16} className="animate-spin" /> Analyzing...
                             </>
                         ) : (
                             <>
-                                <Brain size={18} /> Analyze
+                                <Brain size={16} /> Analyze
                             </>
                         )}
                     </button>
@@ -243,7 +251,7 @@ const SentimentAnalyzer = () => {
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
-                        className="bg-red-500/10 border border-red-500/30 text-red-300 p-4 rounded-2xl text-sm"
+                        className="bg-cf-error/10 text-cf-error p-4 rounded text-sm"
                     >
                         {error}
                     </motion.div>
@@ -257,16 +265,16 @@ const SentimentAnalyzer = () => {
                         animate={{ opacity: 1, y: 0 }}
                         className="space-y-4"
                     >
-                        <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                            <Sparkles className="text-fintech-accent" size={20} />
+                        <h3 className="font-display text-xl font-bold text-cf-on-surface flex items-center gap-2">
+                            <Sparkles className="text-cf-primary" size={20} />
                             Analysis Results
                             {provider && (
-                                <span className={`ml-auto text-xs font-medium px-3 py-1 rounded-full ${
+                                <span className={`ml-auto text-[10px] font-semibold uppercase tracking-wider px-3 py-1 rounded ${
                                     provider === 'groq' 
-                                        ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' 
+                                        ? 'bg-cf-primary/10 text-cf-primary' 
                                         : provider === 'gemini'
-                                            ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                                            : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                            ? 'bg-cf-primary-container/10 text-cf-primary-container'
+                                            : 'bg-cf-secondary/10 text-cf-secondary'
                                 }`}>
                                     via {provider === 'groq' ? 'Groq (Llama-3)' : provider === 'gemini' ? 'Gemini (1.5 Flash)' : 'HuggingFace (FinBERT)'}
                                 </span>
@@ -281,10 +289,10 @@ const SentimentAnalyzer = () => {
                                         key={sentiment}
                                         initial={{ scale: 0.9 }}
                                         animate={{ scale: 1 }}
-                                        className={`bg-fintech-darkCard/60 backdrop-blur-md rounded-2xl p-4 text-center border ${getSentimentGlow(sentiment)}`}
+                                        className={`bg-cf-surface-high rounded p-4 text-center ${getSentimentGlow(sentiment)}`}
                                     >
-                                        <div className={`text-3xl font-extrabold ${getSentimentColor(sentiment)}`}>{count}</div>
-                                        <div className="text-slate-400 text-sm capitalize mt-1">{sentiment}</div>
+                                        <div className={`text-3xl font-display font-bold ${getSentimentColor(sentiment)}`} style={{ fontVariantNumeric: 'tabular-nums' }}>{count}</div>
+                                        <div className="text-cf-on-muted text-label-sm mt-1">{sentiment}</div>
                                     </motion.div>
                                 );
                             })}
@@ -296,16 +304,16 @@ const SentimentAnalyzer = () => {
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: index * 0.1 }}
-                                className={`bg-fintech-darkCard/40 backdrop-blur-xl rounded-2xl p-5 border transition-all ${getSentimentGlow(result.sentiment)}`}
+                                className={`bg-cf-surface-high rounded p-5 transition-all ${getSentimentGlow(result.sentiment)}`}
                             >
                                 <div className="flex flex-col sm:flex-row justify-between gap-4">
-                                    <p className="text-white text-sm flex-1 leading-relaxed">"{result.text}"</p>
+                                    <p className="text-cf-on-surface text-sm flex-1 leading-relaxed">"{result.text}"</p>
                                     <div className="flex items-center gap-3 shrink-0">
-                                        <div className={`flex items-center gap-1 font-bold text-lg ${getSentimentColor(result.sentiment)}`}>
+                                        <div className={`flex items-center gap-1 font-display font-bold text-lg ${getSentimentColor(result.sentiment)}`}>
                                             {getSentimentIcon(result.sentiment)}
                                             <span className="capitalize">{result.sentiment}</span>
                                         </div>
-                                        <span className="text-slate-500 text-sm">({result.confidence}%)</span>
+                                        <span className="text-cf-on-muted text-xs" style={{ fontVariantNumeric: 'tabular-nums' }}>({result.confidence}%)</span>
                                     </div>
                                 </div>
                             </motion.div>

@@ -7,7 +7,8 @@ const CategoryBarChart = ({ categoryTotals }) => {
         .map(([name, value]) => ({ name, value }))
         .sort((a, b) => b.value - a.value);
 
-    const COLORS = ['#7000FF', '#00F0FF', '#3B82F6', '#EC4899', '#F59E0B', '#22C55E'];
+    // Design system signal colors
+    const COLORS = ['#d674ff', '#8ff5ff', '#00eefc', '#afffd1', '#ff716c', '#a855f7'];
 
     if (data.length === 0) {
         return null; // hide if no data
@@ -16,9 +17,9 @@ const CategoryBarChart = ({ categoryTotals }) => {
     const CustomTooltip = ({ active, payload }) => {
         if (active && payload && payload.length) {
             return (
-                <div className="bg-fintech-darkCard/90 backdrop-blur-xl p-3 border border-fintech-secondary rounded shadow-neon-purple text-white">
-                    <p className="font-bold">{payload[0].payload.name}</p>
-                    <p className="text-fintech-secondary">Outflow: <span className="font-bold">${payload[0].value.toFixed(2)}</span></p>
+                <div className="glass rounded p-3 shadow-glow-secondary text-cf-on-surface">
+                    <p className="font-display font-bold text-sm">{payload[0].payload.name}</p>
+                    <p className="text-cf-secondary" style={{ fontVariantNumeric: 'tabular-nums' }}>Outflow: <span className="font-bold">${payload[0].value.toFixed(2)}</span></p>
                 </div>
             );
         }
@@ -26,19 +27,19 @@ const CategoryBarChart = ({ categoryTotals }) => {
     };
 
     return (
-        <div className="h-80 w-full bg-fintech-darkCard/40 backdrop-blur-md rounded-2xl border border-white/5 p-6 shadow-glass mt-6 relative overflow-hidden">
-            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <span className="w-2 h-6 bg-fintech-secondary rounded-full inline-block shadow-neon-purple"></span>
+        <div className="h-80 w-full bg-cf-surface-high rounded p-6 shadow-glass mt-6 relative overflow-hidden">
+            <h3 className="font-display text-lg font-bold text-cf-on-surface mb-4 flex items-center gap-2">
+                <span className="w-2 h-6 bg-cf-secondary rounded-full inline-block shadow-glow-secondary"></span>
                 Cash-Burn by Sector
             </h3>
             <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={data} layout="vertical" margin={{ top: 0, right: 30, left: 10, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={true} vertical={false} />
-                        <XAxis type="number" stroke="#64748B" tick={{fill: '#64748B'}} axisLine={false} tickLine={false} />
-                        <YAxis dataKey="name" type="category" stroke="#64748B" tick={{fill: '#CBD5E1', fontSize: 12}} width={100} axisLine={false} tickLine={false} />
-                        <Tooltip cursor={{fill: 'rgba(255,255,255,0.02)'}} content={<CustomTooltip />} />
-                        <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(68,72,79,0.15)" horizontal={true} vertical={false} />
+                        <XAxis type="number" stroke="#44484f" tick={{fill: '#8a90a0', fontSize: 11}} axisLine={false} tickLine={false} />
+                        <YAxis dataKey="name" type="category" stroke="#44484f" tick={{fill: '#f1f3fc', fontSize: 12}} width={100} axisLine={false} tickLine={false} />
+                        <Tooltip cursor={{fill: 'rgba(68,72,79,0.10)'}} content={<CustomTooltip />} />
+                        <Bar dataKey="value" radius={[0, 2, 2, 0]} barSize={18}>
                             {data.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}

@@ -75,10 +75,10 @@ const FinancialAnalysisPage = () => {
     };
 
     return (
-        <div className="flex h-screen overflow-hidden bg-fintech-bg dark:bg-fintech-darkBg">
+        <div className="flex h-screen overflow-hidden bg-cf-bg">
             {sidebarOpen && (
                 <div 
-                    className="fixed inset-0 bg-black/50 z-20 md:hidden"
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-20 md:hidden"
                     onClick={() => setSidebarOpen(false)}
                 />
             )}
@@ -91,39 +91,39 @@ const FinancialAnalysisPage = () => {
                 <Navbar toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
                 
                 <div className="p-6 md:p-8 mt-16 md:mt-0 max-w-4xl mx-auto w-full">
-                    <div className="flex justify-between items-end mb-8 border-b border-slate-200 dark:border-slate-800 pb-4">
+                    <div className="flex justify-between items-end mb-8 pb-4">
                         <div>
-                            <h1 className="text-3xl font-bold text-fintech-primary dark:text-white mb-2">Financial Summary & Recommendations</h1>
-                            <p className="text-slate-500 dark:text-slate-400">AI-generated report based on your monthly data.</p>
+                            <h1 className="text-display-md text-cf-on-surface mb-2">Financial Summary & Recommendations</h1>
+                            <p className="text-cf-on-muted text-sm">AI-generated report based on your monthly data.</p>
                         </div>
                     </div>
 
                     {(!budget || budget === 0) && (!expenses || expenses.length === 0) ? (
-                        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl p-6 flex items-start gap-4 text-yellow-800 dark:text-yellow-200">
+                        <div className="bg-cf-secondary/10 rounded p-6 flex items-start gap-4 text-cf-secondary">
                             <AlertCircle className="shrink-0" />
                             <div>
-                                <h3 className="font-bold text-lg mb-1">No Budget or Expenses Defined</h3>
-                                <p>Please go to the Expenses page to enter your monthly budget or expenses to see your analysis.</p>
+                                <h3 className="font-display font-bold text-lg mb-1">No Budget or Expenses Defined</h3>
+                                <p className="text-sm text-cf-on-muted">Please go to the Expenses page to enter your monthly budget or expenses to see your analysis.</p>
                             </div>
                         </div>
                     ) : (
                         <div className="space-y-10">
                             {/* Monthly Overview */}
                             <section>
-                                <h2 className="text-2xl font-bold mb-4 dark:text-white">Monthly Overview:</h2>
-                                <div className="bg-white dark:bg-fintech-darkCard rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-800">
-                                    <ul className="space-y-3 text-lg font-medium dark:text-slate-200">
-                                        <li className="flex gap-2">
-                                            <span className="text-slate-500 w-32">• Budget:</span> 
-                                            <span>${(Number(budget) || 0).toFixed(2)}</span>
+                                <h2 className="font-display text-xl font-bold mb-4 text-cf-on-surface">Monthly Overview:</h2>
+                                <div className="bg-cf-surface-high rounded p-6">
+                                    <ul className="space-y-4 text-sm">
+                                        <li className="flex gap-2 items-center">
+                                            <span className="text-label-sm text-cf-on-muted w-36">Budget</span> 
+                                            <span className="text-cf-on-surface font-display font-bold text-lg" style={{ fontVariantNumeric: 'tabular-nums' }}>${(Number(budget) || 0).toFixed(2)}</span>
                                         </li>
-                                        <li className="flex gap-2">
-                                            <span className="text-slate-500 w-32">• Total Expenses:</span> 
-                                            <span>${totalExpenses.toFixed(2)}</span>
+                                        <li className="flex gap-2 items-center">
+                                            <span className="text-label-sm text-cf-on-muted w-36">Total Expenses</span> 
+                                            <span className="text-cf-on-surface font-display font-bold text-lg" style={{ fontVariantNumeric: 'tabular-nums' }}>${totalExpenses.toFixed(2)}</span>
                                         </li>
-                                        <li className="flex gap-2">
-                                            <span className="text-slate-500 w-32">• Net Savings:</span> 
-                                            <span className={netSavings >= 0 ? 'text-fintech-accent' : 'text-red-500'}>
+                                        <li className="flex gap-2 items-center">
+                                            <span className="text-label-sm text-cf-on-muted w-36">Net Savings</span> 
+                                            <span className={`font-display font-bold text-lg ${netSavings >= 0 ? 'text-cf-tertiary' : 'text-cf-error'}`} style={{ fontVariantNumeric: 'tabular-nums' }}>
                                                 ${netSavings.toFixed(2)}
                                             </span>
                                         </li>
@@ -133,21 +133,21 @@ const FinancialAnalysisPage = () => {
 
                             {/* Expense Breakdown */}
                             <section>
-                                <h2 className="text-2xl font-bold mb-4 dark:text-white">Analysis & Breakdown:</h2>
+                                <h2 className="font-display text-xl font-bold mb-4 text-cf-on-surface">Analysis & Breakdown:</h2>
                                 <div className="grid grid-cols-1 gap-6">
-                                    <div className="bg-fintech-darkCard/40 backdrop-blur-xl rounded-2xl p-6 shadow-glass border border-white/5 relative overflow-hidden">
-                                        <h3 className="text-xl font-bold mb-4 dark:text-white flex items-center gap-2">
-                                            <span className="w-2 h-6 bg-pink-500 rounded-full inline-block shadow-[0_0_10px_rgba(236,72,153,0.8)]"></span>
+                                    <div className="bg-cf-surface-high rounded p-6 relative overflow-hidden">
+                                        <h3 className="font-display text-lg font-bold mb-4 text-cf-on-surface flex items-center gap-2">
+                                            <span className="w-2 h-6 bg-cf-error rounded-full inline-block shadow-glow-error"></span>
                                             Cash-Outflow Summary
                                         </h3>
                                         {Object.keys(categoryTotals).length === 0 ? (
-                                            <p className="text-slate-500">No expenses recorded.</p>
+                                            <p className="text-cf-on-muted text-sm">No expenses recorded.</p>
                                         ) : (
-                                            <ul className="space-y-3 text-lg font-medium dark:text-slate-200">
+                                            <ul className="space-y-3">
                                                 {Object.entries(categoryTotals).map(([cat, total]) => (
-                                                    <li key={cat} className="flex gap-2">
-                                                        <span className="text-slate-500 w-32">• {cat}:</span> 
-                                                        <span>${total.toFixed(2)}</span>
+                                                    <li key={cat} className="flex gap-2 items-center text-sm">
+                                                        <span className="text-cf-on-muted w-32">• {cat}:</span> 
+                                                        <span className="text-cf-on-surface font-display font-medium" style={{ fontVariantNumeric: 'tabular-nums' }}>${total.toFixed(2)}</span>
                                                     </li>
                                                 ))}
                                             </ul>
@@ -160,15 +160,14 @@ const FinancialAnalysisPage = () => {
 
                             {/* Investment Recommendations */}
                             <section>
-                                <h2 className="text-2xl font-bold mb-4 dark:text-white">Investment Recommendations (Moderate Risk):</h2>
-                                <div className="space-y-4 text-lg dark:text-slate-200">
+                                <h2 className="font-display text-xl font-bold mb-4 text-cf-on-surface">Investment Recommendations (Moderate Risk):</h2>
+                                <div className="space-y-3 text-sm text-cf-on-surface mb-6">
                                     {investments.map((inv, idx) => (
-                                        <p key={idx} className="font-medium">{idx + 1}. {inv.name} ({inv.ticker}): <span className="font-normal text-slate-600 dark:text-slate-400">{inv.desc}</span></p>
+                                        <p key={idx} className="font-medium">{idx + 1}. {inv.name} ({inv.ticker}): <span className="font-normal text-cf-on-muted">{inv.desc}</span></p>
                                     ))}
                                 </div>
                                 
-                                {/* Also displaying as cards for better UI, while keeping the text above strictly compliant */}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                                     {investments.map((inv, idx) => (
                                         <InvestmentCard 
                                             key={idx}
@@ -183,12 +182,12 @@ const FinancialAnalysisPage = () => {
 
                             {/* Financial Tips */}
                             <section className="pb-12">
-                                <h2 className="text-2xl font-bold mb-4 dark:text-white">Financial Tips:</h2>
-                                <div className="space-y-3 text-lg font-medium dark:text-slate-200 mb-6 bg-white dark:bg-fintech-darkCard rounded-2xl p-6 border border-slate-100 dark:border-slate-800">
+                                <h2 className="font-display text-xl font-bold mb-4 text-cf-on-surface">Financial Tips:</h2>
+                                <div className="space-y-3 text-sm text-cf-on-surface mb-6 bg-cf-surface-high rounded p-6">
                                     {generateTips().map((tip, index) => (
                                         <p key={index} className="flex gap-2">
-                                            <span className="text-fintech-accent">•</span> 
-                                            <span className="font-normal">{tip}</span>
+                                            <span className="text-cf-primary">•</span> 
+                                            <span className="font-normal text-cf-on-muted">{tip}</span>
                                         </p>
                                     ))}
                                 </div>

@@ -12,10 +12,10 @@ const AIInsightsPage = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     return (
-        <div className="flex h-screen overflow-hidden bg-fintech-bg dark:bg-fintech-darkBg">
+        <div className="flex h-screen overflow-hidden bg-cf-bg">
             {sidebarOpen && (
                 <div 
-                    className="fixed inset-0 bg-black/50 z-20 md:hidden"
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-20 md:hidden"
                     onClick={() => setSidebarOpen(false)}
                 />
             )}
@@ -31,14 +31,14 @@ const AIInsightsPage = () => {
                     <motion.div 
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="flex justify-between items-end mb-8 border-b border-white/5 pb-4"
+                        className="flex justify-between items-end mb-8 pb-4"
                     >
                         <div>
-                            <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
-                                <Brain className="text-fintech-accent" />
+                            <h1 className="text-display-md text-cf-on-surface mb-2 flex items-center gap-3">
+                                <Brain className="text-cf-primary" />
                                 AI-Powered Insights
                             </h1>
-                            <p className="text-slate-400">
+                            <p className="text-cf-on-muted text-sm">
                                 Analyze financial news sentiment, get market analysis, and stock predictions.
                             </p>
                         </div>
@@ -46,23 +46,24 @@ const AIInsightsPage = () => {
 
                     <SentimentAnalyzer />
 
-                    {/* Divider */}
-                    <div className="my-12 border-t border-white/5 relative">
-                        <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 bg-fintech-darkBg px-4 text-slate-600 text-sm">Market Analysis</span>
+                    {/* Section divider — tonal shift instead of line */}
+                    <div className="my-12 relative flex items-center justify-center">
+                        <div className="h-px w-full bg-gradient-to-r from-transparent via-cf-outline/15 to-transparent"></div>
+                        <span className="absolute bg-cf-bg px-4 text-label-sm text-cf-on-muted">Market Analysis</span>
                     </div>
 
                     <MarketAnalyzer />
 
-                    {/* Divider */}
-                    <div className="my-12 border-t border-white/5 relative">
-                        <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 bg-fintech-darkBg px-4 text-slate-600 text-sm">Stock Prediction</span>
+                    <div className="my-12 relative flex items-center justify-center">
+                        <div className="h-px w-full bg-gradient-to-r from-transparent via-cf-outline/15 to-transparent"></div>
+                        <span className="absolute bg-cf-bg px-4 text-label-sm text-cf-on-muted">Stock Prediction</span>
                     </div>
 
                     <ZerodhaPredictor />
 
-                    {/* Divider */}
-                    <div className="my-12 border-t border-white/5 relative">
-                        <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 bg-fintech-darkBg px-4 text-slate-600 text-sm">Automated Scanner</span>
+                    <div className="my-12 relative flex items-center justify-center">
+                        <div className="h-px w-full bg-gradient-to-r from-transparent via-cf-outline/15 to-transparent"></div>
+                        <span className="absolute bg-cf-bg px-4 text-label-sm text-cf-on-muted">Automated Scanner</span>
                     </div>
 
                     <DailyScanner />

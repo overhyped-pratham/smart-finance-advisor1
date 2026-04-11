@@ -14,7 +14,7 @@ const ProjectionChart = ({ netSavings }) => {
 
     if (netSavings <= 0) {
         return (
-            <div className="h-64 flex items-center justify-center text-slate-500 bg-fintech-darkCard/40 backdrop-blur-md rounded-2xl border border-white/5">
+            <div className="h-64 flex items-center justify-center text-cf-on-muted bg-cf-surface-high rounded p-6">
                 <p>Increase net savings above $0 to view your 12-month accumulation projection.</p>
             </div>
         );
@@ -23,9 +23,9 @@ const ProjectionChart = ({ netSavings }) => {
     const CustomTooltip = ({ active, payload, label }) => {
         if (active && payload && payload.length) {
             return (
-                <div className="bg-fintech-darkCard/90 backdrop-blur-xl p-3 border border-fintech-accent rounded shadow-neon-cyan text-white">
-                    <p className="font-bold">{label}</p>
-                    <p className="text-fintech-accent">Est. Cash: <span className="font-bold">${payload[0].value.toLocaleString()}</span></p>
+                <div className="glass rounded p-3 shadow-glow-primary text-cf-on-surface">
+                    <p className="font-display font-bold text-sm">{label}</p>
+                    <p className="text-cf-primary" style={{ fontVariantNumeric: 'tabular-nums' }}>Est. Cash: <span className="font-bold">${payload[0].value.toLocaleString()}</span></p>
                 </div>
             );
         }
@@ -33,9 +33,9 @@ const ProjectionChart = ({ netSavings }) => {
     };
 
     return (
-        <div className="h-80 w-full bg-fintech-darkCard/40 backdrop-blur-md rounded-2xl border border-white/5 p-6 shadow-glass relative overflow-hidden">
-            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <span className="w-2 h-6 bg-fintech-accent rounded-full inline-block shadow-neon-cyan"></span>
+        <div className="h-80 w-full bg-cf-surface-high rounded p-6 shadow-glass relative overflow-hidden">
+            <h3 className="font-display text-lg font-bold text-cf-on-surface mb-4 flex items-center gap-2">
+                <span className="w-2 h-6 bg-cf-primary rounded-full inline-block shadow-glow-primary"></span>
                 12-Month Liquidity Projection
             </h3>
             <div className="h-64">
@@ -43,19 +43,19 @@ const ProjectionChart = ({ netSavings }) => {
                     <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <defs>
                             <linearGradient id="colorProjected" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#00F0FF" stopOpacity={0.4}/>
-                                <stop offset="95%" stopColor="#00F0FF" stopOpacity={0}/>
+                                <stop offset="5%" stopColor="#8ff5ff" stopOpacity={0.3}/>
+                                <stop offset="95%" stopColor="#8ff5ff" stopOpacity={0}/>
                             </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                        <XAxis dataKey="name" stroke="#64748B" tick={{fill: '#64748B'}} tickLine={false} axisLine={false} />
-                        <YAxis stroke="#64748B" tick={{fill: '#64748B'}} tickLine={false} axisLine={false} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(68,72,79,0.15)" vertical={false} />
+                        <XAxis dataKey="name" stroke="#44484f" tick={{fill: '#8a90a0', fontSize: 11}} tickLine={false} axisLine={false} />
+                        <YAxis stroke="#44484f" tick={{fill: '#8a90a0', fontSize: 11}} tickLine={false} axisLine={false} />
                         <Tooltip content={<CustomTooltip />} />
                         <Area 
                             type="monotone" 
                             dataKey="projected" 
-                            stroke="#00F0FF" 
-                            strokeWidth={3}
+                            stroke="#8ff5ff" 
+                            strokeWidth={2}
                             fillOpacity={1} 
                             fill="url(#colorProjected)" 
                         />

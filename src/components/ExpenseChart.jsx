@@ -13,11 +13,12 @@ const ExpenseChart = ({ expenses }) => {
         return acc;
     }, []);
 
-    const COLORS = ['#3B82F6', '#22C55E', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#64748B'];
+    // Design system palette
+    const COLORS = ['#8ff5ff', '#d674ff', '#afffd1', '#00eefc', '#ff716c', '#a855f7', '#44484f'];
 
     if (!expenses || expenses.length === 0) {
         return (
-            <div className="h-64 flex items-center justify-center text-slate-400 dark:text-slate-500">
+            <div className="h-64 flex items-center justify-center text-cf-on-muted text-sm">
                 No expense data available.
             </div>
         );
@@ -26,9 +27,9 @@ const ExpenseChart = ({ expenses }) => {
     const CustomTooltip = ({ active, payload }) => {
         if (active && payload && payload.length) {
             return (
-                <div className="bg-white dark:bg-fintech-darkCard p-3 rounded-lg shadow-lg border border-slate-100 dark:border-slate-800">
-                    <p className="font-semibold text-slate-800 dark:text-slate-200">{payload[0].name}</p>
-                    <p className="text-fintech-secondary font-bold">
+                <div className="glass rounded p-3 shadow-glass">
+                    <p className="font-display font-semibold text-cf-on-surface text-sm">{payload[0].name}</p>
+                    <p className="text-cf-primary font-bold" style={{ fontVariantNumeric: 'tabular-nums' }}>
                         ${payload[0].value.toFixed(2)}
                     </p>
                 </div>
@@ -47,8 +48,9 @@ const ExpenseChart = ({ expenses }) => {
                         cy="45%"
                         innerRadius={60}
                         outerRadius={80}
-                        paddingAngle={5}
+                        paddingAngle={3}
                         dataKey="value"
+                        strokeWidth={0}
                     >
                         {categoryData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="transparent" />
@@ -58,7 +60,7 @@ const ExpenseChart = ({ expenses }) => {
                     <Legend 
                         verticalAlign="bottom" 
                         height={36}
-                        wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }}
+                        wrapperStyle={{ paddingTop: '20px', fontSize: '11px', color: '#8a90a0' }}
                     />
                 </PieChart>
             </ResponsiveContainer>

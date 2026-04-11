@@ -6,27 +6,36 @@ const BudgetCard = ({ title, amount, icon, isAccent, trend }) => {
         <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`p-6 rounded-2xl relative overflow-hidden backdrop-blur-xl ${isAccent ? 'bg-fintech-secondary/20 text-white border-fintech-accent shadow-neon-cyan' : 'bg-fintech-darkCard/60 text-white border-white/5 hover:border-fintech-secondary/50 hover:shadow-neon-purple'} border flex flex-col justify-between transition-all duration-300`}
+            className={`p-6 rounded relative overflow-hidden flex flex-col justify-between transition-all duration-300 group ${
+                isAccent 
+                    ? 'bg-cf-surface-high text-cf-on-surface shadow-glow-tertiary' 
+                    : 'bg-cf-surface-high text-cf-on-surface hover:shadow-glow-primary'
+            }`}
         >
-            <div className="flex justify-between items-start mb-4">
+            {/* Subtle glow orb */}
+            <div className={`absolute -top-8 -right-8 w-24 h-24 rounded-full blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${
+                isAccent ? 'bg-cf-tertiary/20' : 'bg-cf-primary/15'
+            }`}></div>
+
+            <div className="flex justify-between items-start mb-4 relative z-10">
                 <div>
-                    <p className={`text-sm font-medium ${isAccent ? 'text-green-100' : 'text-slate-500 dark:text-slate-400'}`}>
+                    <p className="text-label-sm text-cf-on-muted mb-2">
                         {title}
                     </p>
-                    <h3 className="text-3xl font-bold mt-1">
+                    <h3 className="text-display-md" style={{ fontVariantNumeric: 'tabular-nums' }}>
                         ${typeof amount === 'number' ? amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
                     </h3>
                 </div>
-                <div className={`p-3 rounded-full ${isAccent ? 'bg-white/20' : 'bg-slate-50 dark:bg-slate-800 text-fintech-secondary'}`}>
+                <div className={`p-3 rounded ${isAccent ? 'bg-cf-tertiary/15 text-cf-tertiary' : 'bg-cf-primary/10 text-cf-primary'}`}>
                     {icon}
                 </div>
             </div>
             {trend && (
-                <div className="flex items-center text-sm">
-                    <span className={trend >= 0 ? (isAccent ? 'text-white' : 'text-fintech-accent') : 'text-red-500'}>
+                <div className="flex items-center text-sm relative z-10">
+                    <span className={trend >= 0 ? 'text-cf-tertiary' : 'text-cf-error'} style={{ fontVariantNumeric: 'tabular-nums' }}>
                         {trend >= 0 ? '+' : ''}{trend}%
                     </span>
-                    <span className={`ml-2 ${isAccent ? 'text-green-100' : 'text-slate-400'}`}>from last month</span>
+                    <span className="ml-2 text-cf-on-muted text-xs">from last month</span>
                 </div>
             )}
         </motion.div>

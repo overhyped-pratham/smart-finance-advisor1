@@ -92,22 +92,22 @@ const MarketAnalyzer = () => {
 
     return (
         <div className="space-y-6 mt-8">         
-            <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-sm ${isOnline ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300' : 'bg-red-500/10 border-red-500/20 text-red-300'}`}>
-                <CheckCircle2 size={16} />
+            <div className={`flex items-center gap-3 px-4 py-3 rounded text-sm ${isOnline ? 'bg-cf-tertiary/10 text-cf-tertiary' : 'bg-cf-error/10 text-cf-error'}`}>
+                <div className={isOnline ? 'pulse-live' : 'w-2 h-2 rounded-full bg-cf-error'}></div>
                 <span>Market Analysis is <strong>{isOnline ? 'online' : 'offline'}</strong>.</span>
                 {aiStatus?.fallback === 'huggingface' && (
-                    <span className="ml-auto text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-full">HF Backup Ready</span>
+                    <span className="ml-auto text-[10px] font-semibold uppercase tracking-wider bg-cf-secondary/10 text-cf-secondary px-2 py-0.5 rounded">HF Backup Ready</span>
                 )}
             </div>
 
-            <div className="bg-fintech-darkCard/40 backdrop-blur-xl rounded-2xl p-6 shadow-glass border border-white/5 relative overflow-hidden">
-                <div className="absolute -bottom-16 -right-16 w-36 h-36 bg-fintech-secondary/10 rounded-full blur-[80px] pointer-events-none"></div>
+            <div className="bg-cf-surface-high rounded p-6 relative overflow-hidden">
+                <div className="absolute -bottom-16 -right-16 w-36 h-36 bg-cf-secondary/10 rounded-full blur-[80px] pointer-events-none"></div>
 
-                <h3 className="text-xl font-bold text-white flex items-center gap-2 mb-2">
-                    <Cpu className="text-fintech-secondary" size={22} />
+                <h3 className="font-display text-xl font-bold text-cf-on-surface flex items-center gap-2 mb-2">
+                    <Cpu className="text-cf-secondary" size={20} />
                     Market Analysis
                 </h3>
-                <p className="text-slate-400 text-sm mb-5">
+                <p className="text-cf-on-muted text-sm mb-5">
                     Ask for AI-powered market analysis insights using Llama-3 parsing via Groq's high-speed chips.
                 </p>
 
@@ -117,15 +117,15 @@ const MarketAnalyzer = () => {
                         placeholder="Paste your Groq API Key (gsk_...)"
                         value={apiKey}
                         onChange={(e) => saveApiKey(e.target.value)}
-                        className="flex-1 bg-fintech-primary/40 border border-white/10 rounded-xl px-4 py-2 text-white placeholder-slate-600 focus:border-fintech-secondary/50 outline-none transition-all text-sm"
+                        className="input-bottomline flex-1"
                     />
-                    <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" className="text-xs text-fintech-secondary underline flex items-center px-2">Get API Key</a>
+                    <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" className="text-xs text-cf-secondary hover:underline flex items-center px-2">Get Key</a>
                 </div>
 
-                {/* Hugging Face Fallback Token */}
+                {/* Fallback tokens */}
                 <button 
                     onClick={() => setShowFallback(!showFallback)}
-                    className="flex items-center gap-2 text-xs text-slate-500 hover:text-slate-300 transition-colors mb-3"
+                    className="flex items-center gap-2 text-xs text-cf-on-muted hover:text-cf-on-surface transition-colors mb-3"
                 >
                     <Shield size={12} />
                     <span>Backup: Hugging Face / Gemini API</span>
@@ -136,22 +136,24 @@ const MarketAnalyzer = () => {
                         <div className="mb-4 flex gap-3 animate-fadeIn">
                             <input 
                                 type="password"
-                                placeholder="Paste your Hugging Face Token (hf_...)"
+                                placeholder="Hugging Face Token (hf_...)"
                                 value={hfToken}
                                 onChange={(e) => saveHfToken(e.target.value)}
-                                className="flex-1 bg-amber-900/20 border border-amber-500/20 rounded-xl px-4 py-2 text-white placeholder-slate-600 focus:border-amber-400/50 outline-none transition-all text-sm"
+                                className="input-bottomline flex-1"
+                                style={{ borderBottomColor: '#d674ff' }}
                             />
-                            <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noreferrer" className="text-xs text-amber-400 underline flex items-center px-2">Get HF Token</a>
+                            <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noreferrer" className="text-xs text-cf-secondary hover:underline flex items-center px-2">Get Token</a>
                         </div>
                         <div className="mb-4 flex gap-3 animate-fadeIn">
                             <input 
                                 type="password"
-                                placeholder="Paste your Gemini API Key (AIza...)"
+                                placeholder="Gemini API Key (AIza...)"
                                 value={geminiToken}
                                 onChange={(e) => saveGeminiToken(e.target.value)}
-                                className="flex-1 bg-blue-900/20 border border-blue-500/20 rounded-xl px-4 py-2 text-white placeholder-slate-600 focus:border-blue-400/50 outline-none transition-all text-sm"
+                                className="input-bottomline flex-1"
+                                style={{ borderBottomColor: '#00eefc' }}
                             />
-                            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-xs text-blue-400 underline flex items-center px-2">Get Gemini Key</a>
+                            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-xs text-cf-primary-container hover:underline flex items-center px-2">Get Key</a>
                         </div>
                     </>
                 )}
@@ -161,7 +163,7 @@ const MarketAnalyzer = () => {
                         <button
                             key={i}
                             onClick={() => setPrompt(sp)}
-                            className="text-xs bg-fintech-secondary/10 hover:bg-fintech-secondary/20 text-blue-300 border border-blue-500/10 px-3 py-1.5 rounded-lg transition-colors"
+                            className="btn-ghost text-xs px-3 py-1.5"
                         >
                             {sp.substring(0, 50)}...
                         </button>
@@ -173,22 +175,22 @@ const MarketAnalyzer = () => {
                     onChange={(e) => setPrompt(e.target.value)}
                     placeholder="Enter your market analysis prompt..."
                     rows={4}
-                    className="w-full bg-fintech-primary/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:border-fintech-secondary/50 focus:ring-1 focus:ring-fintech-secondary/30 outline-none transition-all resize-none"
+                    className="w-full bg-cf-surface-lowest rounded p-4 text-cf-on-surface placeholder-cf-outline text-sm focus:outline-none focus:ring-1 focus:ring-cf-secondary/40 transition-all resize-none"
                 />
 
                 <div className="flex justify-end mt-4">
                     <button
                         onClick={generateAnalysis}
                         disabled={loading}
-                        className="bg-gradient-to-r from-fintech-secondary to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold px-6 py-2.5 rounded-xl transition-all flex items-center gap-2 disabled:opacity-40 shadow-neon-purple"
+                        className="bg-cf-gradient-secondary text-white font-bold px-6 py-2.5 rounded transition-all flex items-center gap-2 disabled:opacity-40 shadow-glow-secondary hover:shadow-[0_0_24px_rgba(214,116,255,0.35)] text-sm"
                     >
                         {loading ? (
                             <>
-                                <Loader2 size={18} className="animate-spin" /> Generating...
+                                <Loader2 size={16} className="animate-spin" /> Generating...
                             </>
                         ) : (
                             <>
-                                <Send size={16} /> Generate Analysis
+                                <Send size={14} /> Generate Analysis
                             </>
                         )}
                     </button>
@@ -201,7 +203,7 @@ const MarketAnalyzer = () => {
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
-                        className="bg-red-500/10 border border-red-500/30 text-red-300 p-4 rounded-2xl text-sm"
+                        className="bg-cf-error/10 text-cf-error p-4 rounded text-sm"
                     >
                         {error}
                     </motion.div>
@@ -213,38 +215,38 @@ const MarketAnalyzer = () => {
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-fintech-darkCard/40 backdrop-blur-xl rounded-2xl p-6 shadow-glass border border-fintech-secondary/20 relative overflow-hidden"
+                        className="bg-cf-surface-high rounded p-6 shadow-glow-secondary relative overflow-hidden"
                     >
-                        <div className="absolute -top-10 -left-10 w-32 h-32 bg-fintech-secondary/10 rounded-full blur-[60px] pointer-events-none"></div>
+                        <div className="absolute -top-10 -left-10 w-32 h-32 bg-cf-secondary/10 rounded-full blur-[60px] pointer-events-none"></div>
                         
-                        <h4 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
-                            <Zap className="text-fintech-secondary" size={18} />
+                        <h4 className="font-display text-lg font-bold text-cf-on-surface flex items-center gap-2 mb-4">
+                            <Zap className="text-cf-secondary" size={18} />
                             AI-Generated Market Analysis
                             {provider && (
-                                <span className={`ml-auto text-xs font-medium px-3 py-1 rounded-full ${
+                                <span className={`ml-auto text-[10px] font-semibold uppercase tracking-wider px-3 py-1 rounded ${
                                     provider === 'groq' 
-                                        ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' 
+                                        ? 'bg-cf-primary/10 text-cf-primary' 
                                         : provider === 'gemini'
-                                            ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                                            : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                            ? 'bg-cf-primary-container/10 text-cf-primary-container'
+                                            : 'bg-cf-secondary/10 text-cf-secondary'
                                 }`}>
                                     via {provider === 'groq' ? 'Groq (Llama-3)' : provider === 'gemini' ? 'Gemini (1.5 Flash)' : 'HuggingFace (Mistral-7B)'}
                                 </span>
                             )}
                         </h4>
                         
-                        <div className="bg-fintech-primary/30 rounded-xl p-4 mb-3 border border-white/5">
-                            <p className="text-slate-400 text-xs font-medium mb-1">PROMPT</p>
-                            <p className="text-slate-300 text-sm">{response.prompt}</p>
+                        <div className="bg-cf-surface-lowest rounded p-4 mb-3">
+                            <p className="text-label-sm text-cf-on-muted mb-1">PROMPT</p>
+                            <p className="text-cf-on-surface text-sm">{response.prompt}</p>
                         </div>
 
-                        <div className="bg-fintech-primary/30 rounded-xl p-4 border border-fintech-secondary/10">
-                            <p className="text-fintech-secondary text-xs font-medium mb-2">RESPONSE</p>
-                            <p className="text-white leading-relaxed whitespace-pre-wrap">{response.response}</p>
+                        <div className="bg-cf-surface-lowest rounded p-4">
+                            <p className="text-label-sm text-cf-secondary mb-2">RESPONSE</p>
+                            <p className="text-cf-on-surface leading-relaxed whitespace-pre-wrap text-sm">{response.response}</p>
                         </div>
 
-                        <p className="text-slate-600 text-xs mt-4">
-                            ⚠️ This is AI-generated analysis and should not be treated as financial advice. Always consult a licensed financial advisor.
+                        <p className="text-cf-on-muted text-xs mt-4">
+                            ⚠️ This is AI-generated analysis and should not be treated as financial advice.
                         </p>
                     </motion.div>
                 )}

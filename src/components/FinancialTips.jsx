@@ -4,9 +4,9 @@ import { Lightbulb } from 'lucide-react';
 
 const FinancialTips = ({ tips }) => {
     return (
-        <div className="bg-gradient-to-br from-slate-50 to-white dark:from-fintech-darkCard dark:to-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800">
-            <h3 className="text-xl font-bold mb-4 flex items-center gap-2 dark:text-white">
-                <Lightbulb className="text-yellow-500" />
+        <div className="bg-cf-surface-high p-6 rounded">
+            <h3 className="font-display text-lg font-bold mb-5 flex items-center gap-2 text-cf-on-surface">
+                <Lightbulb className="text-cf-primary" size={20} />
                 Financial Tips
             </h3>
             <div className="space-y-4">
@@ -18,10 +18,10 @@ const FinancialTips = ({ tips }) => {
                         transition={{ delay: index * 0.15 }}
                         className="flex gap-4 items-start"
                     >
-                        <div className="h-8 w-8 rounded-full bg-fintech-accent/10 text-fintech-accent flex items-center justify-center font-bold text-sm shrink-0">
+                        <div className="h-7 w-7 rounded bg-cf-primary/10 text-cf-primary flex items-center justify-center font-display font-bold text-xs shrink-0">
                             {index + 1}
                         </div>
-                        <p className="text-slate-700 dark:text-slate-300 text-sm mt-1 leading-relaxed">
+                        <p className="text-cf-on-muted text-sm mt-0.5 leading-relaxed">
                             {tip}
                         </p>
                     </motion.div>
