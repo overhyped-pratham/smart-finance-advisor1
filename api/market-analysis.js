@@ -37,7 +37,7 @@ export default async function handler(req, res) {
     if (hfToken) {
         attempted = true;
         try {
-            const hfRes = await fetch('https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3', {
+            const hfRes = await fetch('https://router.huggingface.co/hf-inference/models/mistralai/Mistral-7B-Instruct-v0.3', {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${hfToken}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ inputs: `<s>[INST] You are an expert financial analyst. Provide a concise, highly analytical response based on market data.\n\n${prompt} [/INST]`, parameters: { max_new_tokens: max_tokens || 500 } })
