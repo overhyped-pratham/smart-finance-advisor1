@@ -1,50 +1,51 @@
-/**
- * Expenses API - Serverless endpoint
- * GET    /api/expenses           - Get all expenses
- * POST   /api/expenses           - Add expense { name, category, amount, id }
- * DELETE /api/expenses?id=X      - Delete expense by ID
- * 
- * Note: On Vercel serverless, there's no persistent storage.
- * The client uses localStorage as primary storage; this API
- * is a placeholder that returns graceful responses.
- */
-
-// In-memory store (resets on cold start - client localStorage is primary)
-let storedExpenses = [];
+import { connectMongo } from './_lib/mongo.js';
+import { requireJwt } from './_lib/auth.js';
+import { setCors, isPreflight } from './_lib/http.js';
+import { Expense } from './_lib/models.js';
 
 export default async function handler(req, res) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    if (req.method === 'OPTIONS') return res.status(200).end();
+  setCors(res);
+  if (isPreflight(req)) return res.status(200).end();
+
+  try {
+    await connectMongo();
+    const { uid } = requireJwt(req);
 
     if (req.method === 'GET') {
-        return res.json(storedExpenses);
+      const rows = await Expense.find({ user_id: uid }).sort({ created_at: -1 }).lean();
+      return res.json(rows.map((r) => ({ id: r._id, ...r })));
     }
 
     if (req.method === 'POST') {
-        const expense = req.body;
-        if (!expense || !expense.name || !expense.amount) {
-            return res.status(400).json({ error: 'Expense name and amount are required' });
-        }
-        const newExpense = {
-            id: expense.id || Date.now().toString(),
-            name: expense.name,
-            category: expense.category || 'Other',
-            amount: Number(expense.amount)
-        };
-        storedExpenses.push(newExpense);
-        return res.json({ success: true, expense: newExpense });
+      const { id, name, amount, category } = req.body || {};
+      if (!name || amount === undefined || amount === null) return res.status(400).json({ error: 'name and amount are required' });
+      const expenseId = id || Date.now().toString();
+      await Expense.updateOne(
+        { _id: expenseId },
+        {
+          $set: {
+            user_id: uid,
+            name: String(name),
+            amount: Number(amount),
+            category: category ? String(category) : 'Other',
+          },
+          $setOnInsert: { created_at: new Date() },
+        },
+        { upsert: true }
+      );
+      return res.json({ success: true, id: expenseId });
     }
 
     if (req.method === 'DELETE') {
-        const id = req.query.id;
-        if (id) {
-            storedExpenses = storedExpenses.filter(e => e.id !== id);
-            return res.json({ success: true });
-        }
-        return res.status(400).json({ error: 'Expense ID required' });
+      const id = req.query?.id;
+      if (!id) return res.status(400).json({ error: 'Expense ID required' });
+      await Expense.deleteOne({ _id: String(id), user_id: uid });
+      return res.json({ success: true });
     }
 
     return res.status(405).json({ error: 'Method not allowed' });
+  } catch (err) {
+    const status = err.statusCode || 500;
+    return res.status(status).json({ error: err.message || 'Failed to handle expenses' });
+  }
 }
